@@ -1,7 +1,9 @@
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like } from 'typeorm';
@@ -12,25 +14,33 @@ import { TransactionCategoryEnum } from 'src/enums/transaction-category.enum';
 import { CreateWithdrawalDto } from './dto/create-withdraw.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { BetStatusEnum } from 'src/enums/bet-status.enum';
+import { UserTokenInterface } from 'src/common/interfaces/user-token.interface';
+import { UserStatusEnum } from 'src/enums/user-status.enum';
+import { TransactionsService } from '../transactions/transactions.service';
+import { calculateUserBalance } from 'src/utils/user.utils';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
-    @InjectRepository(Transaction)
-    private transactionRepository: Repository<Transaction>,
+    @InjectRepository(Transaction) private transactionRepository: Repository<Transaction>,
+    private readonly transactionService: TransactionsService
   ) {}
 
-  async findAll() {
-    return this.userRepository.find();
-  }
+  async deposit(user: UserTokenInterface, depositDto: CreateDepositDto): Promise<any>{
+    const findUser = await this.userRepository.findOneBy({id: user.id})
+    if (!findUser || findUser.user_state !== UserStatusEnum.ACTIVE) {
+      throw new UnauthorizedException(`User ${findUser.user_name} not found or is blocked`);
+    }
+    
+    depositDto.user_id = findUser.id
 
-  async findOneByEmail(email: string): Promise<User | undefined> {
-    return this.userRepository.findOne({ where: { email } });
-  }
+    // return {depositDto}
+    const deposit = await this.transactionRepository.save(depositDto)
 
-  async findOneById(id: number): Promise<User | undefined> {
-    return this.userRepository.findOne({ where: { id } });
+    return {deposit}
+    // await this.transactionService.createDepositTransaction(findUser, depositDto)
+    
   }
 
   async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
@@ -52,23 +62,14 @@ export class UsersService {
     return this.userRepository.save(user);
   }
 
-  async calculateUserBalance(id: number): Promise<any> {
-    let balance = 0;
-    const user = await this.userRepository
-      .createQueryBuilder('user')
-      .leftJoinAndSelect('user.transactions', 'transaction')
-      .where('user.id = :id', { id })
-      .getOne();
-    
-      if(user && user.transactions.length !== 0){
-        for (const transaction of user.transactions) {
-          if (transaction.category === 'deposit' || transaction.category === 'winning') {
-            balance += transaction.amount;
-          } else if (transaction.category === 'withdraw' || transaction.category === 'bet') {
-            balance -= transaction.amount;
-          }
-        }
-      }
-    return balance;
+  async calculateUserBalance(user: number): Promise<any> {
+    try {
+      const balance = await calculateUserBalance(user, this.userRepository)
+      return {balance}
+    } catch (error) {
+      throw new InternalServerErrorException()
+    }
+
+
   }
 }

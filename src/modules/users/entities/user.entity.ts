@@ -53,6 +53,12 @@ export class User {
         default: UserStatusEnum.ACTIVE
       })
     user_state: string
+
+    @Column()
+    role_id: number
+
+    @Column()
+    country_id: number
     
     @CreateDateColumn()
     created_at: Date
@@ -68,11 +74,12 @@ export class User {
     
     @ManyToOne(() => Roles, { eager: true})
     @JoinColumn({ name: 'role_id'})
-    role_id: Roles;
+    rol: Roles;
+  
 
     @ManyToOne(() => Country, { eager: true })
     @JoinColumn({ name: 'country_id' })
-    country_id: Country;
+    country: Country;
   
     @OneToMany(() => Transaction, transaction => transaction.user)
     transactions: Transaction[];

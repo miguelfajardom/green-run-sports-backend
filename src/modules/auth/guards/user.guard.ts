@@ -11,10 +11,10 @@ export class UserGuard implements CanActivate {
   ): boolean | Promise<boolean> | Observable<boolean> {
     const requiredRole = 'user';
     const user = context.switchToHttp().getRequest().user;
-    const userRole = user.role.name;
+    const userRole = user.role;
 
     if (userRole !== requiredRole) {
-      throw new HttpException('You are not authorized to access this resource', HttpStatus.UNAUTHORIZED);
+      throw new HttpException('You are not authorized to access this resource. Only users are allowed', HttpStatus.UNAUTHORIZED);
     }
 
     return true;

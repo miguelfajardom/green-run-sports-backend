@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { BetDto } from '../user_bets/dto/place-bet.dto';
 import { User } from '../users/entities/user.entity';
 import { Transaction } from './entities/transaction.entity';
@@ -8,6 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { UserTokenInterface } from 'src/common/interfaces/user-token.interface';
 import { Bet } from '../bets/entities/bet.entity';
 import { UserBet } from '../user_bets/entities/user_bet.entity';
+import { CreateDepositDto } from '../users/dto/create-deposit.dto';
 
 @Injectable()
 export class TransactionsService {
@@ -18,13 +19,12 @@ export class TransactionsService {
     private readonly userBetRepository: Repository<UserBet>
   ) {}
 
-  async createTransaction(
+  async createBetTransaction(
     user: User,
     bets: BetDto[],
     type: TransactionCategoryEnum,
   ): Promise<any> {
     for (const betDto of bets) {
-      console.log("entro")
       const transaction = new Transaction();
       transaction.amount = betDto.amount;
       transaction.category = type;
@@ -35,6 +35,15 @@ export class TransactionsService {
       // transaction.userBet = user_bet
       // // Guardar la transacción en la base de datos
       // await this.transactionRepository.save(transaction);
+    }
+  }
+
+  async createDepositTransaction(user: User, depositDto: CreateDepositDto): Promise<any>{
+    try {
+      depositDto.user_id = user.id
+      await this.transactionRepository.save(depositDto)
+    } catch (error) {
+      throw new HttpException({message: error}, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 

@@ -7,6 +7,9 @@ import { User } from '../users/entities/user.entity';
 import { QueryFailedError, Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as dotenv from 'dotenv';
+import { Roles } from '../users/entities/rol.entity';
+import { UserStatusEnum } from 'src/enums/user-status.enum';
+import { GenericStatusEnum } from 'src/enums/generic-status.num';
 dotenv.config();
 
 @Injectable()
@@ -14,6 +17,7 @@ export class AuthService {
 
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
+    @InjectRepository(Roles) private rolesRepository: Repository<Roles>,
     private jwtService: JwtService
   ){
 
@@ -43,14 +47,22 @@ export class AuthService {
 
   async login(userObject: LoginAuthDto){
     try {
+
         const {email, password} = userObject
-        const findUser =  await this.userRepository.findOne({where: {email}})
+        
+        const findUser =  await this.userRepository.findOneBy({email})
         if(!findUser) throw new HttpException('USER_NOT_FOUND', HttpStatus.NOT_FOUND);
 
         const checkPassword = await compare(password, findUser.password)
         if(!checkPassword) throw new HttpException('INVALID_PASSWORD', HttpStatus.FORBIDDEN);
+        
+        if(findUser.user_state !== UserStatusEnum.ACTIVE) 
+        throw new HttpException('The specified user is either blocked or no longer exists', HttpStatus.FORBIDDEN);
+        
+        const roleUser = await this.rolesRepository.findOneBy({id: findUser.role_id})
+        if(!roleUser || roleUser.state !== GenericStatusEnum.ACTIVE) throw new HttpException('The assigned role is invalid or does not exist', HttpStatus.FORBIDDEN);
 
-        const payload = {id: findUser.id, user_name: findUser.user_name, role: findUser.role_id, user_state: findUser.user_state}
+        const payload = {id: findUser.id, user_name: findUser.user_name, role: findUser.rol.name, user_state: findUser.user_state}
         const token = this.jwtService.sign(payload)
 
         const data = {
@@ -63,7 +75,7 @@ export class AuthService {
         if(error instanceof HttpException) {
             throw error;
         } else {
-            throw new HttpException('INTERNAL_SERVER_ERROR', HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

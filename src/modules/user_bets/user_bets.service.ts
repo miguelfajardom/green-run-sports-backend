@@ -17,6 +17,7 @@ import { TransactionCategoryEnum } from 'src/enums/transaction-category.enum';
 import { TransactionsService } from '../transactions/transactions.service';
 import { UserBet } from './entities/user_bet.entity';
 import { validateSufficientBalance } from 'src/utils/bet.utils';
+import { calculateUserBalance } from 'src/utils/user.utils';
 
 @Injectable()
 export class UserBetsService {
@@ -43,9 +44,9 @@ export class UserBetsService {
     }
 
     // Calculate user balance
-    const userBalance = await this.userService.calculateUserBalance(user.id);
+    const userBalance = await calculateUserBalance(user.id, this.userRepository);
     // Calculate if has sufficient balance to bet
-    await validateSufficientBalance(userBalance, placeBetDto.bets);
+    await this.validateSufficientBalance(userBalance, placeBetDto.bets);
     // Determine if bets are active status
     await this.validateBetsStatus(placeBetDto.bets);
     // Validate bet events
@@ -57,8 +58,24 @@ export class UserBetsService {
     const saveEntities = await this.userBetRepository.save(entities)
     return {entities}
 
+
     // await this.transactionService.createTransaction(current_user, placeBetDto.bets, TransactionCategoryEnum.BET)
     // return { user_body };
+  }
+
+  async validateSufficientBalance(
+    userBalance: number,
+    bets: BetDto[],
+  ): Promise<boolean> {
+    const totalBetAmount = bets.reduce((sum, bet) => sum + bet.amount, 0);
+  
+    if (totalBetAmount > userBalance) {
+      throw new HttpException(
+        'Insufficient balance to perform the requested action. Please deposit funds to your account',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+    return false;
   }
 
   async validateBetsStatus(bets: BetDto[]): Promise<any> {

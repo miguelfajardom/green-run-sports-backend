@@ -12,6 +12,12 @@ export class Transaction {
   @Column({ type: 'float' })
   amount: number;
 
+  @Column()
+  user_id: number;
+
+  @Column({nullable: true})
+  user_bet_id: number;
+
   @Column({
     type: 'enum',
     enum: TransactionCategoryEnum,

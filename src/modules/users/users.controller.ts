@@ -1,35 +1,53 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, Put, Request } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  UseGuards,
+  Put,
+  Request,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { RegisterAuthDto } from '../auth/dto/register-auth.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { User } from './entities/user.entity';
+import { UserTokenInterface } from 'src/common/interfaces/user-token.interface';
+import { CreateDepositDto } from './dto/create-deposit.dto';
+import { UserGuard } from '../auth/guards/user.guard';
+import { AdminGuard } from '../auth/guards/admin.guard';
+import { User } from 'src/common/decorators/user.decorator';
 
 @ApiBearerAuth()
 @ApiTags('Users')
-@UseGuards(JwtAuthGuard)
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Get()
-  async findAll(): Promise<User[]> {
-    return this.usersService.findAll();
+  @Get('balance/')
+  @UseGuards(UserGuard)
+  getUserBalance(@User() user: UserTokenInterface) {
+    return this.usersService.calculateUserBalance(user.id);
   }
 
   @Get('balance/:id')
-  calculateUserBalance(@Param('id') id: number){
-    return this.usersService.calculateUserBalance(id)
+  @UseGuards(AdminGuard)
+  getUserBalanceById(@Param('id') id: number) {
+    return this.usersService.calculateUserBalance(id);
   }
 
-  // @Post('deposit')
-
-  // @Post('deposit')
-  // async deposit(@Body() depositData: any): Promise<any> {
-  //   const transaction = await this.usersService.deposit(depositData);
-  //   return { message: 'Deposit successful', transaction };
-  // }
+  @Post('deposit')
+  @UseGuards(UserGuard)
+  deposit(
+    @Body() depositDto: CreateDepositDto,
+    @User() user: UserTokenInterface,
+  ) {
+    return this.usersService.deposit(user, depositDto);
+  }
 
   // @Post('withdraw')
   // async withdraw(@Body() withdrawData: any): Promise<any> {

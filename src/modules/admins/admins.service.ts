@@ -11,6 +11,7 @@ import { User } from '../users/entities/user.entity';
 import { UserStatusEnum } from 'src/enums/user-status.enum';
 import { BlockorActivateUserDto } from './dto/block-activate-user.dto';
 import { Bet } from '../bets/entities/bet.entity';
+import { UserTokenInterface } from 'src/common/interfaces/user-token.interface';
 
 @Injectable()
 export class AdminsService {
@@ -19,13 +20,13 @@ export class AdminsService {
     @InjectRepository(Bet) private betRepository: Repository<Bet>,
   ) {}
 
-  async blockUser(blockUserDto: BlockorActivateUserDto): Promise<any> {
+  async blockUser(user: UserTokenInterface, blockUserDto: BlockorActivateUserDto): Promise<any> {
     try {
       const userToBlock = await this.userRepository.findOne({
         where: { id: blockUserDto.user_id },
       });
 
-      if (userToBlock.role_id.name === 'admin') {
+      if (user.role === 'admin') {
         throw new BadRequestException('Cannot block another admin');
       }
 
