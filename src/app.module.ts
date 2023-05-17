@@ -1,10 +1,9 @@
-import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { BetsModule } from './modules/bets/bets.module';
 import { EventsModule } from './modules/events/events.module';
-import { SportsModule } from './modules/sports/sports.module';
 import { TransactionsModule } from './modules/transactions/transactions.module';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -30,7 +29,6 @@ import { User } from './modules/users/entities/user.entity';
     UsersModule,
     BetsModule,
     TransactionsModule,
-    SportsModule,
     EventsModule,
     AuthModule,
     UserBetsModule

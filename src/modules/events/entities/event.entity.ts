@@ -1,6 +1,6 @@
 import { EventStatusEnum } from 'src/enums/event-status';
 import { Bet } from 'src/modules/bets/entities/bet.entity';
-import { Sport } from 'src/modules/sports/entities/sport.entity';
+import { Sport } from 'src/common/entities/sport.entity';
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 
 
