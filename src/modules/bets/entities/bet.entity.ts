@@ -1,3 +1,4 @@
+import { BetOptionEnum } from 'src/enums/bet-option.enum';
 import { BetResultEnum } from 'src/enums/bet-result.enum';
 import { BetStatusEnum } from 'src/enums/bet-status.enum';
 import { Event } from 'src/modules/events/entities/event.entity';
@@ -14,14 +15,19 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
+  AfterUpdate,
 } from 'typeorm';
+import { BetsService } from '../bets.service';
 
 @Entity({ name: 'bets' })
 export class Bet {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({
+    type: 'enum',
+    enum: BetOptionEnum,
+  })
   bet_option: string;
 
   @Column({
@@ -34,8 +40,14 @@ export class Bet {
   @Column()
   name: string;
 
-  @Column()
+  @Column({ type: 'float' })
   odd: number;
+
+  @Column()
+  sport_id: number;
+
+  @Column()
+  event_id: number;
 
   @Column({
     type: 'enum',
@@ -50,25 +62,27 @@ export class Bet {
   @UpdateDateColumn()
   updated_at: Date;
 
-  @Column({ default: false })
+  @Column({ default: null })
   deleted: boolean;
 
   @DeleteDateColumn()
   deleted_at: Date;
 
-  // @ManyToOne(() => User, (user) => user.bets)
-  // @JoinColumn({ name: 'user_id' })
-  // user: User;
-
-  //TODO determinar si elimino o no el eager, false: carga lenta, mejora rendimiento. true: trae todos los datos asocidados en la relacion
-  @ManyToOne(() => Sport, (sport) => sport.bets, { eager: true })
+  @ManyToOne(() => Sport, (sport) => sport.bets)
   @JoinColumn({ name: 'sport_id' })
   sport: Sport;
 
-  @ManyToOne(() => Event, (event) => event.bets, { eager: true })
+  @ManyToOne(() => Event, (event) => event.bets, {eager: true})
   @JoinColumn({ name: 'event_id' })
   event: Event;
   
   @OneToMany(() => UserBet, (userBet) => userBet.bet_id)
   userBets: UserBet[];
+
+  @AfterUpdate()
+  async createTransactionsOnWinningOptions() {
+    const event = this.event;
+
+    await BetsService.createTransactionsOnWinningOptions(this, event);
+  }
 }

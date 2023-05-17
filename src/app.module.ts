@@ -8,13 +8,11 @@ import { SportsModule } from './modules/sports/sports.module';
 import { TransactionsModule } from './modules/transactions/transactions.module';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
-import { JwtService } from '@nestjs/jwt';
 import { UserBetsModule } from './modules/user_bets/user_bets.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
 import { ActiveUserMiddleware } from './common/middlewares/active-user/active-user.middleware';
 import { User } from './modules/users/entities/user.entity';
-import { AdminsModule } from './modules/admins/admins.module';
 
 @Module({
   imports: [
@@ -35,8 +33,7 @@ import { AdminsModule } from './modules/admins/admins.module';
     SportsModule,
     EventsModule,
     AuthModule,
-    UserBetsModule,
-    AdminsModule
+    UserBetsModule
   ],
   controllers: [AppController],
   providers: [

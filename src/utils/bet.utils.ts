@@ -1,98 +1,20 @@
-import {
-  HttpException,
-  HttpStatus,
-  InternalServerErrorException,
-} from '@nestjs/common';
-import { BetStatusEnum } from 'src/enums/bet-status.enum';
-import { Bet } from 'src/modules/bets/entities/bet.entity';
-import { BetDto } from 'src/modules/user_bets/dto/place-bet.dto';
-import { UserBet } from 'src/modules/user_bets/entities/user_bet.entity';
-import { BaseEntity, Repository } from 'typeorm';
+import { BetResultEnum } from "src/enums/bet-result.enum";
+import { BetsResultDto} from "src/modules/bets/dto/settled-bet.dto";
+import { InvalidBetOptionException, MultipleWinningOptionsException } from "./exceptions.utils";
+import { Bet } from "src/modules/bets/entities/bet.entity";
 
-export async function validateSufficientBalance(
-  userBalance: number,
-  bets: BetDto[],
-): Promise<boolean> {
-  const totalBetAmount = bets.reduce((sum, bet) => sum + bet.amount, 0);
+export async function validateBetOptions(betOptions: BetsResultDto[], eventBets: Bet[]): Promise<void> {
 
-  if (totalBetAmount > userBalance) {
-    throw new HttpException(
-      'Insufficient balance to perform the requested action. Please deposit funds to your account',
-      HttpStatus.FORBIDDEN,
-    );
-  }
-  return false;
-}
+  const betOptionsWithWon = betOptions.filter((betOption) => betOption.result === BetResultEnum.WON);
 
-export async function validateBetsStatus(
-  bets: BetDto[],
-  betRepository: Repository<Bet>,
-): Promise<any> {
-  try {
-    for (const betDto of bets) {
-      const bet = betRepository.findOneBy({ id: betDto.bet_id });
-      if (
-        !bet ||
-        (await bet).status === BetStatusEnum.CANCELLED ||
-        (await bet).status === BetStatusEnum.SETTLED
-      ) {
-        throw new HttpException(
-          'One or more bets are not eligible for placement due to their status',
-          HttpStatus.FORBIDDEN,
-        );
+  if (betOptionsWithWon.length === 1) {
+    for (const betOption of betOptions) {
+      if (betOption.result !== BetResultEnum.WON) {
+        betOption.result = BetResultEnum.LOST;
       }
     }
-    return true;
-  } catch (error) {
-    throw new InternalServerErrorException();
-  }
-}
-
-export async function validateBetEvent(
-  bets: BetDto[],
-  betRepository: Repository<Bet>,
-): Promise<boolean> {
-  for (const betDto of bets) {
-    const betExists = await betRepository
-      .createQueryBuilder('bet')
-      .where('bet.id = :bet_id', { bet_id: betDto.bet_id })
-      .andWhere('bet.event_id = :event_id', { event_id: betDto.event_id })
-      .getOne();
-    if (!betExists) {
-      throw new HttpException(
-        `Invalid bet ID ${betDto.bet_id} for the specified event ${betDto.event_id}`,
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-  }
-  return true;
-}
-
-export async function convertDtoToEntity<T>(dto: any, entity: T): Promise<T> {
-  try {
-    for (const key in dto) {
-      if (dto.hasOwnProperty(key)) {
-        entity[key] = dto[key];
-      }
-    }
-  } catch (error) {
-    throw new Error('Error converting DTO to entity: ' + error.message);
+  } else {
+    throw new InvalidBetOptionException(`Exactly one bet option with 'won' status is required for event.`);
   }
 
-  return entity;
 }
-
-// export async function convertDtoToEntity(dto: BetDto): Promise<UserBet> {
-//   const entity = new UserBet();
-//   entity.odd = dto.odd;
-//   entity.amount = dto.amount;
-
-//   // const bet = await this.betRepository.findOneBy({id: dto.bet_id});
-//   // if (!bet) {
-//   //   throw new HttpException('Bet not found', HttpStatus.NOT_FOUND);
-//   // }
-//   entity.bet_id = dto.bet_id;
-//   entity.user_id = dto.user_id
-
-//   return entity;
-// }

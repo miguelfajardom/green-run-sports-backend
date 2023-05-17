@@ -3,7 +3,7 @@ import { Roles } from "./rol.entity";
 import { Transaction } from "src/modules/transactions/entities/transaction.entity";
 import { Bet } from "src/modules/bets/entities/bet.entity";
 import { UserBet } from "src/modules/user_bets/entities/user_bet.entity";
-import { Country } from "src/modules/countries/entities/country.entity";
+import { Country } from "src/common/entities/country.entity";
 import { UserStatusEnum } from "src/enums/user-status.enum";
 
 @Entity({name: 'users'})

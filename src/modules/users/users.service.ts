@@ -10,15 +10,16 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { Transaction } from '../transactions/entities/transaction.entity';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { UserTokenInterface } from 'src/common/interfaces/user-token.interface';
 import { calculateUserBalance, validateUserStatus } from 'src/utils/user.utils';
-import { InsufficientFundsException } from 'src/utils/exceptions.utils';
+import { AdminUpdateException, InsufficientFundsException } from 'src/utils/exceptions.utils';
 import { CreateTransactionDto } from '../transactions/dto/create-transaction.dto';
 import { TransactionCategoryEnum } from 'src/enums/transaction-category.enum';
 import { MessageResponse } from 'src/utils/message-response.enum';
 import { BlockorActivateUserDto } from './dto/block-activate-user.dto';
 import { UserStatusEnum } from 'src/enums/user-status.enum';
+import { UserUpdateDTO } from './dto/update-user.dto';
+import { convertDtoToObjectPlain } from 'src/utils/common-functions.util';
 
 @Injectable()
 export class UsersService {
@@ -72,23 +73,29 @@ export class UsersService {
     }
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
-    const user = await this.userRepository.findOne({ where: { id } });
-    if (!user) {
-      throw new NotFoundException(`User with ID ${id} not found`);
+  async update(user: UserTokenInterface, updateUserDto: UserUpdateDTO, id?: number,): Promise<any> {
+
+    try {
+      const findUser = await validateUserStatus(user.id, this.userRepository)
+
+      if(id){
+        const userToUpdate = await this.userRepository.findOneBy({id})
+
+        if(userToUpdate && userToUpdate.rol.id === 1){
+          throw new AdminUpdateException()
+        }
+      }
+
+      const objectPlain: User = await convertDtoToObjectPlain(updateUserDto);
+
+      objectPlain.id = id ? id : user.id
+
+      await this.userRepository.save(objectPlain);
+
+      return {status: HttpStatus.OK, message: MessageResponse.UPDATE_INFORMATION_SUCCESFULLY}
+    } catch (error) {
+      throw error
     }
-
-    const { first_name, last_name, phone, email, address, city } =
-      updateUserDto;
-
-    user.first_name = first_name || user.first_name;
-    user.last_name = last_name || user.last_name;
-    user.phone = phone || user.phone;
-    user.email = email || user.email;
-    user.address = address || user.address;
-    user.city = city || user.city;
-
-    return this.userRepository.save(user);
   }
 
   async calculateUserBalance(user: number): Promise<any> {

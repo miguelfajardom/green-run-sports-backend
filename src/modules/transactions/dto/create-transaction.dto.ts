@@ -14,6 +14,10 @@ export class CreateTransactionDto {
   user_id: number;
 
   @IsOptional()
+  @IsNumber()
+  user_bet_id: number;
+
+  @IsOptional()
   @IsString()
   description: string;
 

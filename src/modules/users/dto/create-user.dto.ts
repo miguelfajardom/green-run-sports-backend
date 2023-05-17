@@ -51,8 +51,10 @@ export class CreateUserDto {
   @IsNotEmpty()
   @IsString()
   city: string;
-
-  category: number;
+  
+  @IsNotEmpty()
+  @IsString()
+  category: string;
 
   @IsNotEmpty()
   @IsString()

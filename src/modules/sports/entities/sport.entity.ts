@@ -27,4 +27,5 @@ export class Sport {
   @OneToMany(() => Bet, bet => bet.sport)
   bets: Bet[];  
   
+  
 }

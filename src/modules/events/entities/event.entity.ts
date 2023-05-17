@@ -18,6 +18,9 @@ export class Event {
   @Column()
   description: string;
 
+  @Column()
+  sport_id: number
+
   @Column({
     type: 'enum',
     enum: EventStatusEnum,
@@ -32,3 +35,4 @@ export class Event {
   @OneToMany(() => Bet, bet => bet.event)
   bets: Bet[];
 }
+

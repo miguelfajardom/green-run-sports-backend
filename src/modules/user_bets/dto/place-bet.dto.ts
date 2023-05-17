@@ -11,7 +11,7 @@ export class PlaceBetDto {
   bets: BetDto[];
 }
 
-export class BetDto extends CreateUserBetDto{
+export class BetDto{
 
   @IsNumber()
   @IsOptional()
@@ -30,6 +30,6 @@ export class BetDto extends CreateUserBetDto{
   amount: number;
 
   @IsNumber()
-  @IsNotEmpty()
+  @IsOptional()
   odd: number;
 }

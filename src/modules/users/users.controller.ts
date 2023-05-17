@@ -16,6 +16,7 @@ import { User } from 'src/common/decorators/user.decorator';
 import { CreateTransactionDto } from '../transactions/dto/create-transaction.dto';
 import { TransactionCategoryEnum } from 'src/enums/transaction-category.enum';
 import { BlockorActivateUserDto } from './dto/block-activate-user.dto';
+import { UserUpdateDTO } from './dto/update-user.dto';
 
 @ApiBearerAuth()
 @ApiTags('Users')
@@ -68,7 +69,7 @@ export class UsersController {
     @Query('category') category: TransactionCategoryEnum,
     @Query('user_id') user_id: number,
   ) {
-    return this.usersService.getTransactions(null, category, user_id)
+    return this.usersService.getTransactions(null, category, user_id);
   }
 
   @Post('block-user')
@@ -84,5 +85,24 @@ export class UsersController {
   @UseGuards(AdminGuard)
   activateUser(@Body() activateUserDto: BlockorActivateUserDto) {
     return this.usersService.activateUser(activateUserDto);
+  }
+
+  @Post('update')
+  @UseGuards(UserGuard)
+  update(
+    @User() user: UserTokenInterface,
+    @Body() userUpdateDTO: UserUpdateDTO,
+  ) {
+    return this.usersService.update(user, userUpdateDTO);
+  }
+
+  @Post('update/:id')
+  @UseGuards(AdminGuard)
+  updateUser(
+    @User() user: UserTokenInterface,
+    @Body() userUpdateDTO: UserUpdateDTO,
+    @Param('id') user_id: number
+  ) {
+    return this.usersService.update(user, userUpdateDTO, user_id);
   }
 }
