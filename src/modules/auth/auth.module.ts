@@ -7,7 +7,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './jwt.strategy';
 import { Roles } from '../users/entities/rol.entity';
-
+import * as dotenv from 'dotenv';
+dotenv.config();
 @Module({
   imports: [
     UsersModule,

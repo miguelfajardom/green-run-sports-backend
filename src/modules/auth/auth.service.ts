@@ -6,11 +6,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../users/entities/user.entity';
 import { QueryFailedError, Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
-// import * as dotenv from 'dotenv';
 import { Roles } from '../users/entities/rol.entity';
 import { UserStatusEnum } from 'src/enums/user-status.enum';
 import { GenericStatusEnum } from 'src/enums/generic-status.num';
-// dotenv.config();
 
 @Injectable()
 export class AuthService {
