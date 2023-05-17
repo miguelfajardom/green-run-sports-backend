@@ -16,8 +16,9 @@ import { Transaction } from '../transactions/entities/transaction.entity';
 import { TransactionCategoryEnum } from 'src/enums/transaction-category.enum';
 import { TransactionsService } from '../transactions/transactions.service';
 import { UserBet } from './entities/user_bet.entity';
-import { validateSufficientBalance } from 'src/utils/bet.utils';
-import { calculateUserBalance } from 'src/utils/user.utils';
+import { calculateUserBalance, validateUserStatus } from 'src/utils/user.utils';
+import { InsufficientFundsException } from 'src/utils/exceptions.utils';
+import { MessageResponse } from 'src/utils/message-response.enum';
 
 @Injectable()
 export class UserBetsService {
@@ -38,29 +39,43 @@ export class UserBetsService {
     user: UserTokenInterface,
     placeBetDto: PlaceBetDto,
   ): Promise<any> {
+    try {
+      const findUser = await validateUserStatus(user.id, this.userRepository)
 
-    for (let bet of placeBetDto.bets) {
-      bet.user_id = user.id;
+      for (let bet of placeBetDto.bets) {
+        bet.user_id = user.id;
+      }
+  
+      // Calculate user balance
+      const userBalance = await calculateUserBalance(
+        user.id,
+        this.userRepository,
+      );
+  
+      // Calculate if has sufficient balance to bet
+      await this.validateSufficientBalance(userBalance, placeBetDto.bets);
+  
+      // Determine if bets are active status
+      await this.validateBetsStatus(placeBetDto.bets);
+  
+      // Validate bet events
+      await this.validateBetEvent(placeBetDto.bets);
+  
+      // Create user bets
+      const entities = await Promise.all(
+        placeBetDto.bets.map((bet) => this.convertDtoToEntity(bet)),
+      );
+  
+      // Save user bets
+      const saveEntities = await this.userBetRepository.save(entities);
+  
+      await this.transactionService.createBetTransaction(findUser, saveEntities,  TransactionCategoryEnum.BET)
+  
+      return { status: HttpStatus.OK, message: MessageResponse.PLACED_BETS_SUCCESSFULLY};
+  
+    } catch (error) {
+      throw new HttpException(error.message, error.status)
     }
-
-    // Calculate user balance
-    const userBalance = await calculateUserBalance(user.id, this.userRepository);
-    // Calculate if has sufficient balance to bet
-    await this.validateSufficientBalance(userBalance, placeBetDto.bets);
-    // Determine if bets are active status
-    await this.validateBetsStatus(placeBetDto.bets);
-    // Validate bet events
-    await this.validateBetEvent(placeBetDto.bets);
-    // Create user bets
-    const entities = await Promise.all(placeBetDto.bets.map((bet) => this.convertDtoToEntity(bet)));
-
-    // Save user bets
-    const saveEntities = await this.userBetRepository.save(entities)
-    return {entities}
-
-
-    // await this.transactionService.createTransaction(current_user, placeBetDto.bets, TransactionCategoryEnum.BET)
-    // return { user_body };
   }
 
   async validateSufficientBalance(
@@ -68,12 +83,9 @@ export class UserBetsService {
     bets: BetDto[],
   ): Promise<boolean> {
     const totalBetAmount = bets.reduce((sum, bet) => sum + bet.amount, 0);
-  
+
     if (totalBetAmount > userBalance) {
-      throw new HttpException(
-        'Insufficient balance to perform the requested action. Please deposit funds to your account',
-        HttpStatus.FORBIDDEN,
-      );
+      throw new InsufficientFundsException()
     }
     return false;
   }

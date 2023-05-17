@@ -9,7 +9,7 @@ import {
 import { AdminsService } from './admins.service';
 import { AdminGuard } from '../auth/guards/admin.guard';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { BlockorActivateUserDto } from './dto/block-activate-user.dto';
+import { BlockorActivateUserDto } from '../users/dto/block-activate-user.dto';
 import { User } from 'src/common/decorators/user.decorator';
 import { UserTokenInterface } from 'src/common/interfaces/user-token.interface';
 

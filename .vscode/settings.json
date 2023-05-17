@@ -1,0 +1,5 @@
+{
+    "prettier.bracketSpacing": false,
+    "prettier.proseWrap": "never",
+    "prettier.printWidth": 150
+}

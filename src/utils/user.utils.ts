@@ -1,7 +1,9 @@
+import { UnauthorizedException } from "@nestjs/common";
+import { UserStatusEnum } from "src/enums/user-status.enum";
 import { User } from "src/modules/users/entities/user.entity";
 import { Repository } from "typeorm";
 
-export async function calculateUserBalance(id: number, userRepository: Repository<User>): Promise<any> {
+export async function calculateUserBalance(id: number, userRepository: Repository<User>): Promise<number> {
     let balance = 0;
     const user = await userRepository
       .createQueryBuilder('user')
@@ -20,3 +22,13 @@ export async function calculateUserBalance(id: number, userRepository: Repositor
       }
     return balance;
   }
+
+export async function validateUserStatus(id: number, userRepository: Repository<User>): Promise<User> {
+  const findUser = await userRepository.findOneBy({id});
+  
+  if (!findUser || findUser.user_state !== UserStatusEnum.ACTIVE) {
+    throw new UnauthorizedException(`User ${findUser?.user_name} not found or is blocked`);
+  }
+
+  return findUser
+}

@@ -9,7 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
 import { UserStatusEnum } from 'src/enums/user-status.enum';
-import { BlockorActivateUserDto } from './dto/block-activate-user.dto';
+import { BlockorActivateUserDto } from '../users/dto/block-activate-user.dto';
 import { Bet } from '../bets/entities/bet.entity';
 import { UserTokenInterface } from 'src/common/interfaces/user-token.interface';
 

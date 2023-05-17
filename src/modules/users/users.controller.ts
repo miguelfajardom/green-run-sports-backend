@@ -3,24 +3,19 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
-  Delete,
-  Query,
   UseGuards,
-  Put,
-  Request,
+  Query,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RegisterAuthDto } from '../auth/dto/register-auth.dto';
-import { CreateUserDto } from './dto/create-user.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UserTokenInterface } from 'src/common/interfaces/user-token.interface';
-import { CreateDepositDto } from './dto/create-deposit.dto';
 import { UserGuard } from '../auth/guards/user.guard';
 import { AdminGuard } from '../auth/guards/admin.guard';
 import { User } from 'src/common/decorators/user.decorator';
+import { CreateTransactionDto } from '../transactions/dto/create-transaction.dto';
+import { TransactionCategoryEnum } from 'src/enums/transaction-category.enum';
+import { BlockorActivateUserDto } from './dto/block-activate-user.dto';
 
 @ApiBearerAuth()
 @ApiTags('Users')
@@ -43,38 +38,51 @@ export class UsersController {
   @Post('deposit')
   @UseGuards(UserGuard)
   deposit(
-    @Body() depositDto: CreateDepositDto,
+    @Body() depositDto: CreateTransactionDto,
     @User() user: UserTokenInterface,
   ) {
     return this.usersService.deposit(user, depositDto);
   }
 
-  // @Post('withdraw')
-  // async withdraw(@Body() withdrawData: any): Promise<any> {
-  //   const transaction = await this.usersService.withdraw(withdrawData);
-  //   return { message: 'Withdrawal successful', transaction };
-  // }
+  @Post('withdraw')
+  @UseGuards(UserGuard)
+  withdraw(
+    @Body() withdrawDto: CreateTransactionDto,
+    @User() user: UserTokenInterface,
+  ) {
+    return this.usersService.withdraw(user, withdrawDto);
+  }
 
-  // @Put(':id')
-  // async update(
-  //   @Param('id') id: number,
-  //   @Body() updateUserDto: UpdateUserDto,
-  // ): Promise<User> {
-  //   return await this.usersService.update(id, updateUserDto);
-  // }
+  @Get('transactions')
+  @UseGuards(UserGuard)
+  getTransactions(
+    @Query('category') category: TransactionCategoryEnum,
+    @User() user: UserTokenInterface,
+  ) {
+    return this.usersService.getTransactions(user, category);
+  }
 
-  // @Get(':id/balance')
-  // async getBalance(@Param('id') id: number): Promise<number> {
-  //   const balance = await this.usersService.getBalance(id);
-  //   return { balance };
-  // }
+  @Get('all-transactions')
+  @UseGuards(AdminGuard)
+  getAllTransactions(
+    @Query('category') category: TransactionCategoryEnum,
+    @Query('user_id') user_id: number,
+  ) {
+    return this.usersService.getTransactions(null, category, user_id)
+  }
 
-  // @Get(':id/transactions')
-  // async getTransactions(
-  //   @Param('id') id: number,
-  //   @Query('category') category: string,
-  // ): Promise<any> {
-  //   const transactions = await this.usersService.getTransactions(id, category);
-  //   return { transactions };
-  // }
+  @Post('block-user')
+  @UseGuards(AdminGuard)
+  blockUser(
+    @Body() blockUserDto: BlockorActivateUserDto,
+    @User() user: UserTokenInterface,
+  ) {
+    return this.usersService.blockUser(user, blockUserDto);
+  }
+
+  @Post('activate-user')
+  @UseGuards(AdminGuard)
+  activateUser(@Body() activateUserDto: BlockorActivateUserDto) {
+    return this.usersService.activateUser(activateUserDto);
+  }
 }

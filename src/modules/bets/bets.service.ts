@@ -6,6 +6,7 @@ import { Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
 import { Bet } from './entities/bet.entity';
 import { PlaceBetDto } from '../user_bets/dto/place-bet.dto';
+import { MessageResponse } from 'src/utils/message-response.enum';
 
 @Injectable()
 export class BetsService {
@@ -19,9 +20,7 @@ export class BetsService {
   async listBets(event_id: number, sport_id: number): Promise<any> {
     try {
       const queryBuilder = this.betRepository
-        .createQueryBuilder('bet')
-        .leftJoinAndSelect('bet.event', 'event')
-        .leftJoinAndSelect('bet.sport', 'sport');
+        .createQueryBuilder('bet');
   
       if (sport_id) {
         queryBuilder.andWhere('bet.sport_id = :sport_id', { sport_id });
@@ -34,13 +33,16 @@ export class BetsService {
       const filteredData = await queryBuilder.getMany()
 
       if(filteredData.length !== 0){
-        return {status: HttpStatus.OK, filteredData}
+        return {status: HttpStatus.OK, count: filteredData.length, items: filteredData}
       }
 
-      return {status: HttpStatus.NOT_FOUND, message: 'No record found with the specified parameters.'}
+      return {status: HttpStatus.NOT_FOUND, message: MessageResponse.NO_RECORDS_FOUND}
 
     } catch (error) {
-      throw new HttpException({error}, HttpStatus.INTERNAL_SERVER_ERROR)
+      throw new HttpException(
+        { error },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
