@@ -10,7 +10,7 @@ import { validateUserStatus } from 'src/utils/user.utils';
 import { SettleBetDto } from './dto/settled-bet.dto';
 import { validateBetOptions } from 'src/utils/bet.utils';
 import { Event } from '../events/entities/event.entity';
-import { EventnotFoundException } from 'src/utils/exceptions.utils';
+import { AlreadySettledBetException, BetsSettledCannotBeActivatedException, EventnotFoundException, NoRecordsFoundException } from 'src/utils/exceptions.utils';
 import { convertDtoToObjectPlain } from 'src/utils/common-functions.util';
 import { BetResultEnum } from 'src/enums/bet-result.enum';
 import { BetStatusEnum } from 'src/enums/bet-status.enum';
@@ -89,6 +89,54 @@ export class BetsService {
       return { status: HttpStatus.OK, message: 'Record update successfully' };
     } catch (error) {
       throw new HttpException(error, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  async cancelBet(bet_id: number): Promise<any> {
+    try {
+      const bet = await this.betRepository.findOneBy({id: bet_id});
+    
+      if (!bet) {
+        throw new NoRecordsFoundException();
+      }
+    
+      if (bet.status === BetStatusEnum.SETTLED) {
+        throw new AlreadySettledBetException();
+      }
+
+      bet.status = BetStatusEnum.CANCELLED
+
+      await this.betRepository.save(bet)
+
+      return {status: HttpStatus.OK, message: MessageResponse.RECORDS_UPDATED_SUCCESS}
+    } catch (error) {
+      throw error
+    }
+  }
+
+  async activeBet(bet_id: number): Promise<any> {
+    try {
+      const bet = await this.betRepository.findOneBy({id: bet_id});
+    
+      if (!bet) {
+        throw new NoRecordsFoundException();
+      }
+    
+      if (bet.status === BetStatusEnum.SETTLED) {
+        throw new BetsSettledCannotBeActivatedException();
+      }
+
+      if(bet.status === BetStatusEnum.ACTIVE){
+        return {status: HttpStatus.BAD_REQUEST, message: MessageResponse.ACTIVE_BET_ALREADY}
+      }
+
+      bet.status = BetStatusEnum.ACTIVE
+
+      await this.betRepository.save(bet)
+
+      return {status: HttpStatus.OK, message: MessageResponse.RECORDS_UPDATED_SUCCESS}
+    } catch (error) {
+      throw error
     }
   }
 

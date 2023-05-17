@@ -38,7 +38,6 @@ export class TransactionsService {
         transaction.user_id = user.id;
         transaction.amount = bet.amount;
         transaction.category = type;
-        // transaction.user_bet_id 
         await this.transactionRepository.save(transaction);
       }
     } catch (error) {
@@ -69,7 +68,7 @@ export class TransactionsService {
       await validateUserStatus(winningDto.user_id, this.userReposiroty)
       winningDto.category = TransactionCategoryEnum.WINNING
       await this.transactionRepository.save(winningDto);
-      
+
     } catch (error) {
       throw new HttpException(
         { message: error },
@@ -78,7 +77,6 @@ export class TransactionsService {
     }
   }
 
-  // Obtener el user_bet_id basado en el bet_id
   async getUserBetIdByBetId(bet_id: number, user_id: number): Promise<UserBet> {
     const userBetQueryBuilder =
       this.userBetRepository.createQueryBuilder('user_bet');
@@ -87,7 +85,6 @@ export class TransactionsService {
       .andWhere('user_bet.user_id = :user_id', { user_id })
       .getOne();
 
-    console.log(userBetQueryBuilder.getSql());
     return userBet;
   }
   

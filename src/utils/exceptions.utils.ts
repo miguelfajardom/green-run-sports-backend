@@ -51,5 +51,19 @@ export class BetNotElegibleException extends HttpException {
   }
 }
 
+export class AlreadySettledBetException extends HttpException {
+  constructor() {
+    super("Already settled bets cannot be cancelled", HttpStatus.UNAUTHORIZED);
+  }
+}
+
+export class BetsSettledCannotBeActivatedException extends HttpException {
+  constructor() {
+    super('Bets that are already settled cannot be activated', HttpStatus.UNAUTHORIZED);
+  }
+}
+
+
+
 
 

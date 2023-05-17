@@ -47,11 +47,3 @@ import { User } from './modules/users/entities/user.entity';
 })
 export class AppModule{
 }
-// export class AppModule implements NestModule{
-//   configure(consumer: MiddlewareConsumer) {
-//     consumer
-//       .apply(ActiveUserMiddleware)
-//       .exclude({ path: 'auth/register', method: RequestMethod.POST })
-//       .forRoutes('*');
-//   }
-// }

@@ -37,11 +37,9 @@ export class UsersService {
 
     depositDto.user_id = user.id;
 
-    // return {depositDto}
     const deposit = await this.transactionRepository.save(depositDto);
 
     return { deposit };
-    // await this.transactionService.createDepositTransaction(findUser, depositDto)
   }
 
   async withdraw(
@@ -92,7 +90,7 @@ export class UsersService {
 
       await this.userRepository.save(objectPlain);
 
-      return {status: HttpStatus.OK, message: MessageResponse.UPDATE_INFORMATION_SUCCESFULLY}
+      return {status: HttpStatus.OK, message: MessageResponse.RECORDS_UPDATED_SUCCESS}
     } catch (error) {
       throw error
     }

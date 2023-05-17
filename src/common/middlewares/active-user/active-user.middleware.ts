@@ -22,7 +22,6 @@ export class ActiveUserMiddleware implements NestMiddleware {
         throw new HttpException('User is not active', HttpStatus.UNAUTHORIZED);
       }
 
-      // Agrega el usuario a la solicitud
       req.user = user;
 
       next();

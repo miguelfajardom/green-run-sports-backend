@@ -40,6 +40,18 @@ export class BetsController {
     return this.betsService.changeBetStatus(id, updateBetDto);
   }
 
+  @Put('cancel-bet/:id')
+  @UseGuards(AdminGuard)
+  cancelBet(@Param('id') id: number) {
+    return this.betsService.cancelBet(id);
+  }
+
+  @Put('active-bet/:id')
+  @UseGuards(AdminGuard)
+  activeBet(@Param('id') id: number) {
+    return this.betsService.activeBet(id);
+  }
+
   @Put('settle-results/:id')
   @UseGuards(AdminGuard)
   settleBetsResults(

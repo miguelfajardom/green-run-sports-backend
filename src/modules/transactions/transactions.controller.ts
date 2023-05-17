@@ -11,12 +11,4 @@ import { UserTokenInterface } from 'src/common/interfaces/user-token.interface';
 @Controller('transactions')
 export class TransactionsController {
   constructor(private readonly transactionsService: TransactionsService) {}
-
-  // @Post()
-  // createTransaction(
-  //   @Body() createTransactionDto: CreateTransactionDto,
-  //   @User() user: UserTokenInterface) {
-  //   return this.transactionsService.createTransaction(user, createTransactionDto, 'bet');
-  // }
-
 }
