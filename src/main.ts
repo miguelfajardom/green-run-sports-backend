@@ -12,12 +12,12 @@ async function bootstrap() {
   .setDescription('')
   .setVersion('1.0')
   .addTag('Authentication')
-  .addTag('Administrators')
   .addTag('Users')
+  .addTag('Administrators')
   .build();
   
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+  SwaggerModule.setup('docs', app, document);
   app.useGlobalPipes(new ValidationPipe({
     transform: true,
     transformOptions: { enableImplicitConversion: true },
@@ -25,6 +25,7 @@ async function bootstrap() {
     forbidNonWhitelisted: true,
     whitelist: true    
   }));
+  
   await app.listen(3000);
 }
 bootstrap();

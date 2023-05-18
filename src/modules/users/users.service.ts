@@ -12,7 +12,10 @@ import { User } from './entities/user.entity';
 import { Transaction } from '../transactions/entities/transaction.entity';
 import { UserTokenInterface } from 'src/common/interfaces/user-token.interface';
 import { calculateUserBalance, validateUserStatus } from 'src/utils/user.utils';
-import { AdminUpdateException, InsufficientFundsException } from 'src/utils/exceptions.utils';
+import {
+  AdminUpdateException,
+  InsufficientFundsException,
+} from 'src/utils/exceptions.utils';
 import { CreateTransactionDto } from '../transactions/dto/create-transaction.dto';
 import { TransactionCategoryEnum } from 'src/enums/transaction-category.enum';
 import { MessageResponse } from 'src/utils/message-response.enum';
@@ -38,8 +41,13 @@ export class UsersService {
     depositDto.user_id = user.id;
 
     const deposit = await this.transactionRepository.save(depositDto);
+    const new_balance = await calculateUserBalance(user.id, this.userRepository)
 
-    return { deposit };
+    return {
+      status: HttpStatus.OK,
+      message: MessageResponse.DEPOSIT_SUCCESSFULLY,
+      new_balance: new_balance
+    };
   }
 
   async withdraw(
@@ -61,47 +69,56 @@ export class UsersService {
         throw new InsufficientFundsException();
 
       const withdraw = await this.transactionRepository.save(withdrawData);
+      const new_balance = await calculateUserBalance(user.id, this.userRepository)
 
       return {
         status: HttpStatus.OK,
         message: MessageResponse.WITHDRAWAL_SUCCESSFULLY,
+        new_balance
       };
     } catch (error) {
       return { status: error.status, message: error.message };
     }
   }
 
-  async update(user: UserTokenInterface, updateUserDto: UserUpdateDTO, id?: number,): Promise<any> {
-
+  async update(
+    user: UserTokenInterface,
+    updateUserDto: UserUpdateDTO,
+    id?: number,
+  ): Promise<any> {
     try {
-      const findUser = await validateUserStatus(user.id, this.userRepository)
+      const findUser = await validateUserStatus(user.id, this.userRepository);
 
-      if(id){
-        const userToUpdate = await this.userRepository.findOneBy({id})
+      if (id) {
+        const userToUpdate = await this.userRepository.findOneBy({ id });
 
-        if(userToUpdate && userToUpdate.rol.id === 1){
-          throw new AdminUpdateException()
+        if (userToUpdate && userToUpdate.rol.id === 1) {
+          throw new AdminUpdateException();
         }
       }
 
       const objectPlain: User = await convertDtoToObjectPlain(updateUserDto);
 
-      objectPlain.id = id ? id : user.id
+      objectPlain.id = id ? id : user.id;
 
       await this.userRepository.save(objectPlain);
 
-      return {status: HttpStatus.OK, message: MessageResponse.RECORDS_UPDATED_SUCCESS}
+      return {
+        status: HttpStatus.OK,
+        message: MessageResponse.RECORDS_UPDATED_SUCCESS,
+      };
     } catch (error) {
-      throw error
+      throw error;
     }
   }
 
   async calculateUserBalance(user: number): Promise<any> {
     try {
+      const findUser = await validateUserStatus(user, this.userRepository);
       const balance = await calculateUserBalance(user, this.userRepository);
-      return { balance };
+      return { user_name: findUser.user_name, balance };
     } catch (error) {
-      throw new InternalServerErrorException();
+      throw error;
     }
   }
 

@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, UseGuards } from '@nestjs/common';
 import { UserBetsService } from './user_bets.service';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserGuard } from '../auth/guards/user.guard';
 import { User } from 'src/common/decorators/user.decorator';
 import { PlaceBetDto } from './dto/place-bet.dto';
@@ -13,6 +13,7 @@ export class UserBetsController {
   constructor(private readonly userBetsService: UserBetsService) {}
 
   @Post('place-bet')
+  @ApiOperation({ summary: 'Place one or multiple bets' })
   @UseGuards(UserGuard)
   placeBet(
     @Body() placeBetDto: PlaceBetDto,

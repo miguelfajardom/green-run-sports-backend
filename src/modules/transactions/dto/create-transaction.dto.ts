@@ -21,43 +21,18 @@ export class CreateTransactionDto {
   @IsPositive()
   amount: number;
 
-  @ApiProperty({
-    type: Number,
-    description: 'User ID (optional)',
-    required: false,
-    example: 1,
-  })
   @IsOptional()
   @IsNumber()
   user_id: number;
 
-  @ApiProperty({
-    type: Number,
-    description: 'User Bet ID (optional)',
-    required: false,
-    example: 1,
-  })
   @IsOptional()
   @IsNumber()
   user_bet_id: number;
 
-  @ApiProperty({
-    type: String,
-    description: 'Description of the transaction (optional)',
-    required: false,
-    example: 'Payment for the bet',
-  })
   @IsOptional()
   @IsString()
   description: string;
 
-  @ApiProperty({
-    type: String,
-    description: 'Transaction category (optional)',
-    required: false,
-    enum: TransactionCategoryEnum,
-    example: TransactionCategoryEnum.DEPOSIT,
-  })
   @IsOptional()
   @IsString()
   @IsEnum(TransactionCategoryEnum)

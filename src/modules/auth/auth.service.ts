@@ -46,9 +46,9 @@ export class AuthService {
   async login(userObject: LoginAuthDto){
     try {
 
-        const {email, password} = userObject
+        const {user_name, password} = userObject
         
-        const findUser =  await this.userRepository.findOneBy({email})
+        const findUser =  await this.userRepository.findOneBy({user_name})
         if(!findUser) throw new HttpException('USER_NOT_FOUND', HttpStatus.NOT_FOUND);
 
         const checkPassword = await compare(password, findUser.password)
@@ -63,12 +63,7 @@ export class AuthService {
         const payload = {id: findUser.id, user_name: findUser.user_name, role: findUser.rol.name, user_state: findUser.user_state}
         const token = this.jwtService.sign(payload)
 
-        const data = {
-          user: findUser,
-          token          
-        }
-
-        return {status_code: HttpStatus.OK, status_message: 'User found', data: data}
+        return {status_code: HttpStatus.OK, status_message: 'User found', token}
     } catch (error) {
         if(error instanceof HttpException) {
             throw error;

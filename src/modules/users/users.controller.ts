@@ -9,7 +9,13 @@ import {
   Put,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 import { UserTokenInterface } from 'src/common/interfaces/user-token.interface';
 import { UserGuard } from '../auth/guards/user.guard';
 import { AdminGuard } from '../auth/guards/admin.guard';
@@ -27,6 +33,7 @@ export class UsersController {
   @Get('balance/')
   @UseGuards(UserGuard)
   @ApiTags('Users')
+  @ApiOperation({ summary: 'Retrieve balance' })
   getUserBalance(@User() user: UserTokenInterface) {
     return this.usersService.calculateUserBalance(user.id);
   }
@@ -34,6 +41,11 @@ export class UsersController {
   @Get('balance/:id')
   @UseGuards(AdminGuard)
   @ApiTags('Administrators')
+  @ApiOperation({ summary: 'Retrieve the balance of a user based on their ID' })
+  @ApiParam({
+    name: 'id',
+    description: 'ID of the user to retrieve its balance',
+  })
   getUserBalanceById(@Param('id') id: number) {
     return this.usersService.calculateUserBalance(id);
   }
@@ -41,6 +53,7 @@ export class UsersController {
   @Post('deposit')
   @UseGuards(UserGuard)
   @ApiTags('Users')
+  @ApiOperation({ summary: 'Make a deposit' })
   deposit(
     @Body() depositDto: CreateTransactionDto,
     @User() user: UserTokenInterface,
@@ -51,6 +64,7 @@ export class UsersController {
   @Post('withdraw')
   @UseGuards(UserGuard)
   @ApiTags('Users')
+  @ApiOperation({ summary: 'Make a withdrawal' })
   withdraw(
     @Body() withdrawDto: CreateTransactionDto,
     @User() user: UserTokenInterface,
@@ -61,9 +75,18 @@ export class UsersController {
   @Get('transactions')
   @UseGuards(UserGuard)
   @ApiTags('Users')
+  @ApiOperation({
+    summary: 'List all user transactions. It can be filtered too by category',
+  })
+  @ApiQuery({
+    name: 'category',
+    required: false,
+    description:
+      'Transaction category (optional). Possible values: deposit, withdraw, bet, winning.',
+  })
   getTransactions(
-    @Query('category') category: TransactionCategoryEnum,
     @User() user: UserTokenInterface,
+    @Query('category') category: TransactionCategoryEnum,
   ) {
     return this.usersService.getTransactions(user, category);
   }
@@ -71,6 +94,20 @@ export class UsersController {
   @Get('all-transactions')
   @UseGuards(AdminGuard)
   @ApiTags('Administrators')
+  @ApiOperation({
+    summary: 'List all user transactions. It can be filtered too by category',
+  })
+  @ApiQuery({
+    name: 'category',
+    required: false,
+    description:
+      'Transaction category (optional). Possible values: deposit, withdraw, bet, winning.',
+  })
+  @ApiQuery({
+    name: 'user_id',
+    required: false,
+    description: 'Transaction user_id (optional).',
+  })
   getAllTransactions(
     @Query('category') category: TransactionCategoryEnum,
     @Query('user_id') user_id: number,
@@ -81,6 +118,7 @@ export class UsersController {
   @Post('block-user')
   @UseGuards(AdminGuard)
   @ApiTags('Administrators')
+  @ApiOperation({ summary: 'Block an user' })
   blockUser(
     @Body() blockUserDto: BlockorActivateUserDto,
     @User() user: UserTokenInterface,
@@ -91,13 +129,15 @@ export class UsersController {
   @Post('activate-user')
   @UseGuards(AdminGuard)
   @ApiTags('Administrators')
+  @ApiOperation({ summary: 'Activate an user' })
   activateUser(@Body() activateUserDto: BlockorActivateUserDto) {
     return this.usersService.activateUser(activateUserDto);
   }
 
   @Put('update')
-  @UseGuards(UserGuard)
+  @UseGuards(UserGuard, AdminGuard)
   @ApiTags('Users')
+  @ApiOperation({ summary: 'Update an user' })
   update(
     @User() user: UserTokenInterface,
     @Body() userUpdateDTO: UserUpdateDTO,
@@ -108,6 +148,12 @@ export class UsersController {
   @Put('update/:id')
   @UseGuards(AdminGuard)
   @ApiTags('Administrators')
+  @ApiOperation({ summary: 'Update an user by ID' })
+  @ApiParam({
+    name: 'id',
+    required: true,
+    description: 'User id to update',
+  })
   updateUser(
     @User() user: UserTokenInterface,
     @Body() userUpdateDTO: UserUpdateDTO,
