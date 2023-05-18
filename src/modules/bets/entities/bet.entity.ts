@@ -18,65 +18,76 @@ import {
   AfterUpdate,
 } from 'typeorm';
 import { BetsService } from '../bets.service';
-
+import { ApiProperty } from '@nestjs/swagger';
 @Entity({ name: 'bets' })
 export class Bet {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({
-    type: 'enum',
+  @ApiProperty({ 
+    example: 'OPTION_A',
+    description: 'Bet option',
     enum: BetOptionEnum,
   })
+  @Column({ name: 'bet_option', type: 'enum', enum: BetOptionEnum })
   bet_option: string;
 
-  @Column({
-    type: 'enum',
+  @ApiProperty({ 
+    example: 'active',
+    description: 'Status of the bet',
     enum: BetStatusEnum,
     default: 'active',
   })
+  @Column({ name: 'status', type: 'enum', enum: BetStatusEnum, default: 'active' })
   status: string;
 
+  @ApiProperty({ example: 'Bet name', description: 'Name of the bet' })
   @Column()
   name: string;
 
+  @ApiProperty({ example: 2.5, description: 'Odd of the bet' })
   @Column({ type: 'float' })
   odd: number;
 
-  @Column()
+  @ApiProperty({ example: 1, description: 'Sport ID of the bet' })
+  @Column({ name: 'sport_id' })
   sport_id: number;
 
-  @Column()
+  @ApiProperty({ example: 1, description: 'Event ID of the bet' })
+  @Column({ name: 'event_id' })
   event_id: number;
 
-  @Column({
-    type: 'enum',
+  @ApiProperty({ 
+    example: 'WON',
+    description: 'Result of the bet',
     enum: BetResultEnum,
     nullable: true,
   })
+  @Column({ name: 'result', type: 'enum', enum: BetResultEnum, nullable: true })
   result: string;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_at' })
   created_at: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: 'updated_at' })
   updated_at: Date;
 
-  @Column({ default: null })
+  @ApiProperty({ example: true, description: 'Indicates if the bet is deleted' })
+  @Column({ name: 'deleted', default: null })
   deleted: boolean;
 
-  @DeleteDateColumn()
+  @DeleteDateColumn({ name: 'deleted_at' })
   deleted_at: Date;
 
-  @ManyToOne(() => Sport, (sport) => sport.bets)
+  @ManyToOne(() => Sport, sport => sport.bets)
   @JoinColumn({ name: 'sport_id' })
   sport: Sport;
 
-  @ManyToOne(() => Event, (event) => event.bets, {eager: true})
+  @ManyToOne(() => Event, event => event.bets, { eager: true })
   @JoinColumn({ name: 'event_id' })
   event: Event;
-  
-  @OneToMany(() => UserBet, (userBet) => userBet.bet_id)
+
+  @OneToMany(() => UserBet, userBet => userBet.bet_id)
   userBets: UserBet[];
 
   @AfterUpdate()

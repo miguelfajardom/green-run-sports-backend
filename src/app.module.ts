@@ -16,9 +16,9 @@ import { User } from './modules/users/entities/user.entity';
 @Module({
   imports: [
     TypeOrmModule.forRoot({
-      type: 'mariadb',
-      host: 'localhost',
-      port: 3306,
+      type: 'mysql',
+      host: process.env.DATABASE_URI,
+      port: parseInt(process.env.DATABASE_PORT),
       username: 'root',
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
