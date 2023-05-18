@@ -17,6 +17,7 @@ import {
   AdministratorsDoNotHaveBalance,
   InsufficientFundsException,
   NoRecordsFoundException,
+  UserNotFoundException,
 } from 'src/utils/exceptions.utils';
 import { CreateTransactionDto } from '../transactions/dto/create-transaction.dto';
 import { TransactionCategoryEnum } from 'src/enums/transaction-category.enum';
@@ -36,25 +37,38 @@ export class UsersService {
     private transactionRepository: Repository<Transaction>,
   ) {}
 
+  async getUser(user_id): Promise<User> {
+    const findUser = await this.userRepository.findOneBy({ id: user_id });
+
+    if (!findUser) throw new UserNotFoundException();
+
+    return findUser;
+  }
+
   async getEvents(user_id: number, sport_id: number): Promise<any> {
     try {
       await validateUserStatus(user_id, this.userRepository);
 
-      const queryBuilder = await this.eventRepository.createQueryBuilder('event');
+      const queryBuilder = await this.eventRepository.createQueryBuilder(
+        'event',
+      );
 
       if (sport_id) {
         queryBuilder.andWhere('event.sport_id = :sport_id', { sport_id });
       }
 
-      const findedEvents = await queryBuilder.getMany()
-      if(findedEvents.length !== 0){
-        return {status: HttpStatus.OK, count: findedEvents.length, findedEvents };
+      const findedEvents = await queryBuilder.getMany();
+      if (findedEvents.length !== 0) {
+        return {
+          status: HttpStatus.OK,
+          count: findedEvents.length,
+          findedEvents,
+        };
       }
 
-      throw new NoRecordsFoundException()
-
+      throw new NoRecordsFoundException();
     } catch (error) {
-      throw error
+      throw error;
     }
   }
 
@@ -144,14 +158,24 @@ export class UsersService {
     }
   }
 
-  async calculateUserBalance(user_id: number, user?: UserTokenInterface): Promise<any> {
+  async calculateUserBalance(
+    user: UserTokenInterface,
+    user_id?: number,
+  ): Promise<any> {
     try {
       
-      const findUser = await validateUserStatus(user_id, this.userRepository);
-      
-      if(user_id === user.id || findUser.role_id === 1) throw new AdministratorsDoNotHaveBalance()
+      if (user_id) {
+        const findUser = await validateUserStatus(user_id, this.userRepository);
 
-      const balance = await calculateUserBalance(user_id, this.userRepository);
+        if (findUser.role_id === 1) throw new AdministratorsDoNotHaveBalance();
+      }
+
+      const findUser = await validateUserStatus(!user_id ? user.id : user_id, this.userRepository);
+
+      const balance = await calculateUserBalance(
+        !user_id ? user.id : user_id,
+        this.userRepository);
+
       return { user_name: findUser.user_name, balance };
     } catch (error) {
       throw error;

@@ -79,6 +79,7 @@ export class AuthService {
         user_name: findUser.user_name,
         role: findUser.rol.name,
         user_state: findUser.user_state,
+        updated_at: findUser.updated_at
       };
       const token = this.jwtService.sign(payload);
 
@@ -90,5 +91,13 @@ export class AuthService {
     } catch (error) {
       throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+  }
+
+  async isTokenRevoked(user_id: number, tokenIssuedAt: Date): Promise<boolean> {
+    const user = await this.userRepository.findOneBy({id: user_id});
+    if (!user || user.updated_at > tokenIssuedAt) {
+      return true;
+    }
+    return false;
   }
 }

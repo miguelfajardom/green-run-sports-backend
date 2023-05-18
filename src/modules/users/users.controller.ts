@@ -53,7 +53,7 @@ export class UsersController {
   @ApiTags('Users')
   @ApiOperation({ summary: 'Retrieve balance' })
   getUserBalance(@User() user: UserTokenInterface) {
-    return this.usersService.calculateUserBalance(user.id);
+    return this.usersService.calculateUserBalance(user);
   }
 
   @Get('balance/:id')
@@ -68,7 +68,7 @@ export class UsersController {
     @Param('id') id: number,
     @User() user: UserTokenInterface
     ) {
-    return this.usersService.calculateUserBalance(id, user);
+    return this.usersService.calculateUserBalance(user, id);
   }
 
   @Post('deposit')

@@ -16,6 +16,7 @@ import { Event } from './common/entities/event.entity';
 import { Country } from './common/entities/country.entity';
 import { CommonService } from './common/controllers/common/common.service';
 import { Sport } from './common/entities/sport.entity';
+import { RevokedToken } from './common/entities/revoked_token.entity';
 
 @Module({
   imports: [
@@ -29,7 +30,7 @@ import { Sport } from './common/entities/sport.entity';
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true,
     }),
-    TypeOrmModule.forFeature([User, Event, Country, Sport]),
+    TypeOrmModule.forFeature([User, Event, Country, Sport, RevokedToken]),
     UsersModule,
     BetsModule,
     TransactionsModule,
