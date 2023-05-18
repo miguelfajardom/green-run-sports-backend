@@ -5,8 +5,7 @@ import { RegisterAuthDto } from './dto/register-auth.dto';
 import { LoginAuthDto } from './dto/login-auth.dto';
 import { Public } from 'src/common/decorators/auth.decorator';
 
-
-@ApiTags('1. Authentication')
+@ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}

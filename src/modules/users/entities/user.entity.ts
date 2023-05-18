@@ -10,97 +10,82 @@ import { ApiProperty } from "@nestjs/swagger";
 @Entity({ name: 'users' })
 export class User {
   @PrimaryGeneratedColumn()
-  id: number;
+    id: number
+    
+    @Column()
+    first_name: string
+    
+    @Column()
+    last_name: string
+    
+    @Column()
+    phone: string
+    
+    @Column({unique: true})
+    email: string
+    
+    @Column({unique: true})
+    user_name: string
+    
+    @Column()
+    password: string
+    
+    @Column()
+    address: string
+    
+    @Column()
+    gender: string
+    
+    @Column({type: 'datetime'})
+    birth_date: Date
+    
+    @Column()
+    city: string
+    
+    @Column({nullable: true})
+    category: number
+    
+    @Column()
+    document_id: string
+    
+    @Column({
+        type: 'enum',
+        enum: UserStatusEnum,
+        default: UserStatusEnum.ACTIVE
+      })
+    user_state: string
 
-  @ApiProperty({ example: 'John', description: 'First name of the user' })
-  @Column()
-  first_name: string;
+    @Column()
+    role_id: number
 
-  @ApiProperty({ example: 'Doe', description: 'Last name of the user' })
-  @Column()
-  last_name: string;
+    @Column()
+    country_id: number
+    
+    @CreateDateColumn()
+    created_at: Date
+    
+    @UpdateDateColumn()
+    updated_at: Date
+    
+    @Column({nullable: true})
+    deleted: Boolean
+    
+    @DeleteDateColumn()
+    deleted_at: Date
+    
+    @ManyToOne(() => Roles, { eager: true})
+    @JoinColumn({ name: 'role_id'})
+    rol: Roles;
+  
 
-  @ApiProperty({ example: '+123456789', description: 'Phone number of the user' })
-  @Column()
-  phone: string;
+    @ManyToOne(() => Country, { eager: true })
+    @JoinColumn({ name: 'country_id' })
+    country: Country;
+  
+    @OneToMany(() => Transaction, transaction => transaction.user)
+    transactions: Transaction[];
 
-  @ApiProperty({ example: 'johndoe@example.com', description: 'Email address of the user' })
-  @Column({ unique: true })
-  email: string;
+    @OneToMany(() => UserBet, userBet => userBet.user_id)
+    userBets: UserBet[];
 
-  @ApiProperty({ example: 'johndoe', description: 'Username of the user' })
-  @Column({ unique: true })
-  user_name: string;
-
-  @ApiProperty({ example: 'password123', description: 'Password of the user' })
-  @Column()
-  password: string;
-
-  @ApiProperty({ example: '123 Street', description: 'Address of the user' })
-  @Column()
-  address: string;
-
-  @ApiProperty({ example: 'Male', description: 'Gender of the user' })
-  @Column()
-  gender: string;
-
-  @ApiProperty({ example: '1990-01-01', description: 'Birth date of the user' })
-  @Column({ type: 'datetime' })
-  birth_date: Date;
-
-  @ApiProperty({ example: 'City', description: 'City of the user' })
-  @Column()
-  city: string;
-
-  @ApiProperty({ example: 1, description: 'Category of the user' })
-  @Column({ nullable: true })
-  category: number;
-
-  @ApiProperty({ example: '123456789', description: 'Document ID of the user' })
-  @Column()
-  document_id: string;
-
-  @ApiProperty({ 
-    example: 'ACTIVE',
-    description: 'State of the user',
-    enum: UserStatusEnum,
-    default: UserStatusEnum.ACTIVE,
-  })
-  @Column()
-  user_state: string;
-
-  @ApiProperty({ example: 1, description: 'Role ID of the user' })
-  @Column()
-  role_id: number;
-
-  @ApiProperty({ example: 1, description: 'Country ID of the user' })
-  @Column()
-  country_id: number;
-
-  @CreateDateColumn()
-  created_at: Date;
-
-  @UpdateDateColumn()
-  updated_at: Date;
-
-  @ApiProperty({ example: true, description: 'Indicates if the user is deleted' })
-  @Column({ nullable: true })
-  deleted: boolean;
-
-  @DeleteDateColumn()
-  deleted_at: Date;
-
-  @ManyToOne(() => Roles, { eager: true })
-  @JoinColumn({ name: 'role_id' })
-  rol: Roles;
-
-  @ManyToOne(() => Country, { eager: true })
-  @JoinColumn({ name: 'country_id' })
-  country: Country;
-
-  @OneToMany(() => Transaction, transaction => transaction.user)
-  transactions: Transaction[];
-
-  @OneToMany(() => UserBet, userBet => userBet.user_id)
-  userBets: UserBet[];
 }

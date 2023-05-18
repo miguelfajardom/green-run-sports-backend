@@ -6,6 +6,7 @@ import {
   Param,
   UseGuards,
   Query,
+  Put,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -19,25 +20,27 @@ import { BlockorActivateUserDto } from './dto/block-activate-user.dto';
 import { UserUpdateDTO } from './dto/update-user.dto';
 
 @ApiBearerAuth()
-@ApiTags('Users')
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get('balance/')
   @UseGuards(UserGuard)
+  @ApiTags('Users')
   getUserBalance(@User() user: UserTokenInterface) {
     return this.usersService.calculateUserBalance(user.id);
   }
 
   @Get('balance/:id')
   @UseGuards(AdminGuard)
+  @ApiTags('Administrators')
   getUserBalanceById(@Param('id') id: number) {
     return this.usersService.calculateUserBalance(id);
   }
 
   @Post('deposit')
   @UseGuards(UserGuard)
+  @ApiTags('Users')
   deposit(
     @Body() depositDto: CreateTransactionDto,
     @User() user: UserTokenInterface,
@@ -47,6 +50,7 @@ export class UsersController {
 
   @Post('withdraw')
   @UseGuards(UserGuard)
+  @ApiTags('Users')
   withdraw(
     @Body() withdrawDto: CreateTransactionDto,
     @User() user: UserTokenInterface,
@@ -56,6 +60,7 @@ export class UsersController {
 
   @Get('transactions')
   @UseGuards(UserGuard)
+  @ApiTags('Users')
   getTransactions(
     @Query('category') category: TransactionCategoryEnum,
     @User() user: UserTokenInterface,
@@ -65,6 +70,7 @@ export class UsersController {
 
   @Get('all-transactions')
   @UseGuards(AdminGuard)
+  @ApiTags('Administrators')
   getAllTransactions(
     @Query('category') category: TransactionCategoryEnum,
     @Query('user_id') user_id: number,
@@ -74,6 +80,7 @@ export class UsersController {
 
   @Post('block-user')
   @UseGuards(AdminGuard)
+  @ApiTags('Administrators')
   blockUser(
     @Body() blockUserDto: BlockorActivateUserDto,
     @User() user: UserTokenInterface,
@@ -83,12 +90,14 @@ export class UsersController {
 
   @Post('activate-user')
   @UseGuards(AdminGuard)
+  @ApiTags('Administrators')
   activateUser(@Body() activateUserDto: BlockorActivateUserDto) {
     return this.usersService.activateUser(activateUserDto);
   }
 
-  @Post('update')
+  @Put('update')
   @UseGuards(UserGuard)
+  @ApiTags('Users')
   update(
     @User() user: UserTokenInterface,
     @Body() userUpdateDTO: UserUpdateDTO,
@@ -96,12 +105,13 @@ export class UsersController {
     return this.usersService.update(user, userUpdateDTO);
   }
 
-  @Post('update/:id')
+  @Put('update/:id')
   @UseGuards(AdminGuard)
+  @ApiTags('Administrators')
   updateUser(
     @User() user: UserTokenInterface,
     @Body() userUpdateDTO: UserUpdateDTO,
-    @Param('id') user_id: number
+    @Param('id') user_id: number,
   ) {
     return this.usersService.update(user, userUpdateDTO, user_id);
   }

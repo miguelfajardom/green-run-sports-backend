@@ -7,7 +7,7 @@ import { PlaceBetDto } from './dto/place-bet.dto';
 import { UserTokenInterface } from 'src/common/interfaces/user-token.interface';
 
 @ApiBearerAuth()
-@ApiTags('User Bets')
+@ApiTags('Users')
 @Controller('user-bets')
 export class UserBetsController {
   constructor(private readonly userBetsService: UserBetsService) {}

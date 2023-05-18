@@ -1,73 +1,78 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+<h1>Betting Application - Backend</h1>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+<p>This repository contains the source code for the backend of the betting application. It provides a RESTful API for managing users, events, and bets.</p>
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+<h2>Features</h2>
 
-## Description
+<ul>
+  <li>User authentication using JSON Web Tokens (JWT).</li>
+  <li>User management: registration, login, user roles.</li>
+  <li>Event management: creation, update, deletion, event querying.</li>
+  <li>Bet management: placing bets on events, bet querying.</li>
+  <li>Integration with MySQL database for data storage.</li>
+</ul>
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+<h2>Prerequisites</h2>
 
-## Installation
+<ul>
+  <li>Node.js 14.x</li>
+  <li>MySQL 8.x</li>
+  <li>MongoDB 4.x</li>
+</ul>
 
-```bash
-$ npm install
-```
+<h2>Installation</h2>
 
-## Running the app
+<ol>
+  <li>Clone this repository to your local machine:</li>
+</ol>
 
-```bash
-# development
-$ npm run start
+<pre><code>git clone https://github.com/your-username/your-repository.git
+</code></pre>
 
-# watch mode
-$ npm run start:dev
+<ol start="2">
+  <li>Navigate to the project directory:</li>
+</ol>
 
-# production mode
-$ npm run start:prod
-```
+<pre><code>cd your-repository
+</code></pre>
 
-## Test
+<ol start="3">
+  <li>Install the dependencies:</li>
+</ol>
 
-```bash
-# unit tests
-$ npm run test
+<pre><code>npm install
+</code></pre>
 
-# e2e tests
-$ npm run test:e2e
+<ol start="4">
+  <li>Configure the environment variables:</li>
+  <ul>
+    <li>Create a <code>.env</code> file in the project's root directory and define the necessary environment variables, such as database configuration and authentication credentials.</li>
+  </ul>
+</ol>
 
-# test coverage
-$ npm run test:cov
-```
+<ol start="5">
+  <li>Start the application:</li>
+</ol>
 
-## Support
+<pre><code>npm start
+</code></pre>
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+<ol start="6">
+  <li>The application will be available at <a href="http://localhost:3000">http://localhost:3000</a>.</li>
+</ol>
 
-## Stay in touch
+<h2>API Documentation</h2>
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+<p>For more details about the endpoints and their usage, please refer to the <a href="./docs/api-docs.md">API documentation</a>.</p>
 
-## License
+<h2>Contributions</h2>
 
-Nest is [MIT licensed](LICENSE).
+<p>Contributions are welcome. If you would like to make improvements or fixes, please create a pull request.</p>
+
+<h2>License</h2>
+
+<p>This project is licensed under the MIT License. See the <a href="./LICENSE">LICENSE</a> file for more details.</p>
+
+<h2>Contact</h2>
+
+<p>If you have any questions or suggestions, feel free to contact us via email or open an issue in the repository.</p>

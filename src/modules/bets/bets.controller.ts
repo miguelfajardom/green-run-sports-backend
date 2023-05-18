@@ -1,12 +1,8 @@
 import {
   Controller,
   Get,
-  Post,
   Body,
-  Patch,
   Param,
-  Delete,
-  Request,
   UseGuards,
   Query,
   Put,
@@ -20,13 +16,14 @@ import { User } from 'src/common/decorators/user.decorator';
 import { SettleBetDto } from './dto/settled-bet.dto';
 
 @ApiBearerAuth()
-@ApiTags('Bets')
 @Controller('bets')
+@ApiTags('Administrators')
 export class BetsController {
   constructor(private readonly betsService: BetsService) {}
 
   @Get('list-bets')
   @UseGuards(AdminGuard)
+  
   listBets(
     @Query('sport_id') sport_id?: number,
     @Query('event_id') event_id?: number,

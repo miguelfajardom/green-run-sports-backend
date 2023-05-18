@@ -11,7 +11,9 @@ async function bootstrap() {
   .setTitle('GreenRun - Sports Documentation')
   .setDescription('')
   .setVersion('1.0')
-  // .addTag('Users', 'Auth')
+  .addTag('Authentication')
+  .addTag('Administrators')
+  .addTag('Users')
   .build();
   
   const document = SwaggerModule.createDocument(app, config);
