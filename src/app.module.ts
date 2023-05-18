@@ -19,7 +19,7 @@ import { User } from './modules/users/entities/user.entity';
       type: 'mysql',
       host: process.env.DATABASE_URI,
       port: parseInt(process.env.DATABASE_PORT),
-      username: 'root',
+      username: process.env.DATABASE_USER,
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
