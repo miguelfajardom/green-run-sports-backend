@@ -14,7 +14,9 @@ import { UserTokenInterface } from 'src/common/interfaces/user-token.interface';
 import { calculateUserBalance, validateUserStatus } from 'src/utils/user.utils';
 import {
   AdminUpdateException,
+  AdministratorsDoNotHaveBalance,
   InsufficientFundsException,
+  NoRecordsFoundException,
 } from 'src/utils/exceptions.utils';
 import { CreateTransactionDto } from '../transactions/dto/create-transaction.dto';
 import { TransactionCategoryEnum } from 'src/enums/transaction-category.enum';
@@ -23,14 +25,38 @@ import { BlockorActivateUserDto } from './dto/block-activate-user.dto';
 import { UserStatusEnum } from 'src/enums/user-status.enum';
 import { UserUpdateDTO } from './dto/update-user.dto';
 import { convertDtoToObjectPlain } from 'src/utils/common-functions.util';
+import { Event } from 'src/common/entities/event.entity';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
+    @InjectRepository(Event) private eventRepository: Repository<Event>,
     @InjectRepository(Transaction)
     private transactionRepository: Repository<Transaction>,
   ) {}
+
+  async getEvents(user_id: number, sport_id: number): Promise<any> {
+    try {
+      await validateUserStatus(user_id, this.userRepository);
+
+      const queryBuilder = await this.eventRepository.createQueryBuilder('event');
+
+      if (sport_id) {
+        queryBuilder.andWhere('event.sport_id = :sport_id', { sport_id });
+      }
+
+      const findedEvents = await queryBuilder.getMany()
+      if(findedEvents.length !== 0){
+        return {status: HttpStatus.OK, count: findedEvents.length, findedEvents };
+      }
+
+      throw new NoRecordsFoundException()
+
+    } catch (error) {
+      throw error
+    }
+  }
 
   async deposit(
     user: UserTokenInterface,
@@ -41,12 +67,15 @@ export class UsersService {
     depositDto.user_id = user.id;
 
     const deposit = await this.transactionRepository.save(depositDto);
-    const new_balance = await calculateUserBalance(user.id, this.userRepository)
+    const new_balance = await calculateUserBalance(
+      user.id,
+      this.userRepository,
+    );
 
     return {
       status: HttpStatus.OK,
       message: MessageResponse.DEPOSIT_SUCCESSFULLY,
-      new_balance: new_balance
+      new_balance: new_balance,
     };
   }
 
@@ -69,12 +98,15 @@ export class UsersService {
         throw new InsufficientFundsException();
 
       const withdraw = await this.transactionRepository.save(withdrawData);
-      const new_balance = await calculateUserBalance(user.id, this.userRepository)
+      const new_balance = await calculateUserBalance(
+        user.id,
+        this.userRepository,
+      );
 
       return {
         status: HttpStatus.OK,
         message: MessageResponse.WITHDRAWAL_SUCCESSFULLY,
-        new_balance
+        new_balance,
       };
     } catch (error) {
       return { status: error.status, message: error.message };
@@ -112,10 +144,14 @@ export class UsersService {
     }
   }
 
-  async calculateUserBalance(user: number): Promise<any> {
+  async calculateUserBalance(user_id: number, user?: UserTokenInterface): Promise<any> {
     try {
-      const findUser = await validateUserStatus(user, this.userRepository);
-      const balance = await calculateUserBalance(user, this.userRepository);
+      
+      const findUser = await validateUserStatus(user_id, this.userRepository);
+      
+      if(user_id === user.id || findUser.role_id === 1) throw new AdministratorsDoNotHaveBalance()
+
+      const balance = await calculateUserBalance(user_id, this.userRepository);
       return { user_name: findUser.user_name, balance };
     } catch (error) {
       throw error;

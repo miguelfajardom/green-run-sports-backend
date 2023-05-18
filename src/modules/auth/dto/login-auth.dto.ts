@@ -5,7 +5,8 @@ export class LoginAuthDto {
     @ApiProperty({
       type: String,
       description: 'User name',
-      example: 'jonndoe'
+      example: 'administrator',
+      examples: ['admin', 'user']
     })
     @IsString()
     user_name: string;

@@ -14,7 +14,7 @@ export async function validateBetOptions(betOptions: BetsResultDto[], eventBets:
       }
     }
   } else {
-    throw new InvalidBetOptionException(`Exactly one bet option with 'won' status is required for event.`);
+    throw new InvalidBetOptionException();
   }
 
 }

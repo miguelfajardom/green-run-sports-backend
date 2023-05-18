@@ -41,7 +41,7 @@ export class BetsController {
     name: 'event_id',
     required: false,
     type: 'number',
-    description: 'Event id',
+    description: 'Filter by event ID (optional)',
   })
   listBets(
     @Query('sport_id') sport_id: number,

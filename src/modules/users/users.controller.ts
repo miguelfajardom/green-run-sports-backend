@@ -30,6 +30,24 @@ import { UserUpdateDTO } from './dto/update-user.dto';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @Get('events')
+  @UseGuards(AdminGuard)
+  @ApiTags('Administrators')
+  @ApiOperation({ summary: 'Retrieve all events created in database' })
+  @ApiQuery({
+    name: 'sport_id',
+    description:
+      'Filter by sport ID (optional). Possible sports: 1-Football, 2-Tennis, 3-Basketball, 4-Golf',
+    required: false,
+    type: 'number',
+  })
+  getEvents(
+    @Query('sport_id') sport_id: number,
+    @User() user: UserTokenInterface,
+  ) {
+    return this.usersService.getEvents(user.id, sport_id);
+  }
+
   @Get('balance/')
   @UseGuards(UserGuard)
   @ApiTags('Users')
@@ -46,8 +64,11 @@ export class UsersController {
     name: 'id',
     description: 'ID of the user to retrieve its balance',
   })
-  getUserBalanceById(@Param('id') id: number) {
-    return this.usersService.calculateUserBalance(id);
+  getUserBalanceById(
+    @Param('id') id: number,
+    @User() user: UserTokenInterface
+    ) {
+    return this.usersService.calculateUserBalance(id, user);
   }
 
   @Post('deposit')
@@ -135,9 +156,9 @@ export class UsersController {
   }
 
   @Put('update')
-  @UseGuards(UserGuard, AdminGuard)
   @ApiTags('Users')
-  @ApiOperation({ summary: 'Update an user' })
+  @ApiTags('Administrators')
+  @ApiOperation({ summary: 'Update logged user' })
   update(
     @User() user: UserTokenInterface,
     @Body() userUpdateDTO: UserUpdateDTO,
