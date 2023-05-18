@@ -16,7 +16,9 @@ import { Transaction } from '../transactions/entities/transaction.entity';
 import { TransactionCategoryEnum } from 'src/enums/transaction-category.enum';
 import { TransactionsService } from '../transactions/transactions.service';
 import { UserBet } from './entities/user_bet.entity';
-import { validateSufficientBalance } from 'src/utils/bet.utils';
+import { calculateUserBalance, validateUserStatus } from 'src/utils/user.utils';
+import { BetNotElegibleException, InsufficientFundsException } from 'src/utils/exceptions.utils';
+import { MessageResponse } from 'src/utils/message-response.enum';
 
 @Injectable()
 export class UserBetsService {
@@ -37,28 +39,54 @@ export class UserBetsService {
     user: UserTokenInterface,
     placeBetDto: PlaceBetDto,
   ): Promise<any> {
+    try {
+      const findUser = await validateUserStatus(user.id, this.userRepository);
 
-    for (let bet of placeBetDto.bets) {
-      bet.user_id = user.id;
+      for (let bet of placeBetDto.bets) {
+        bet.user_id = user.id;
+      }
+
+      const userBalance = await calculateUserBalance(
+        user.id,
+        this.userRepository,
+      );
+
+      await this.validateSufficientBalance(userBalance, placeBetDto.bets);
+      await this.validateBetsStatus(placeBetDto.bets);
+      await this.validateBetEvent(placeBetDto.bets);
+      await this.addOddToBet(placeBetDto.bets);
+
+      const entities = await Promise.all(
+        placeBetDto.bets.map((bet) => this.convertDtoToEntity(bet)),
+      );
+
+      const saveEntities = await this.userBetRepository.save(entities);
+
+      await this.transactionService.createBetTransaction(
+        findUser,
+        saveEntities,
+        TransactionCategoryEnum.BET,
+      );
+
+      return {
+        status: HttpStatus.OK,
+        message: MessageResponse.PLACED_BETS_SUCCESSFULLY,
+      };
+    } catch (error) {
+      throw new HttpException(error.message, error.status);
     }
+  }
 
-    // Calculate user balance
-    const userBalance = await this.userService.calculateUserBalance(user.id);
-    // Calculate if has sufficient balance to bet
-    await validateSufficientBalance(userBalance, placeBetDto.bets);
-    // Determine if bets are active status
-    await this.validateBetsStatus(placeBetDto.bets);
-    // Validate bet events
-    await this.validateBetEvent(placeBetDto.bets);
-    // Create user bets
-    const entities = await Promise.all(placeBetDto.bets.map((bet) => this.convertDtoToEntity(bet)));
+  async validateSufficientBalance(
+    userBalance: number,
+    bets: BetDto[],
+  ): Promise<boolean> {
+    const totalBetAmount = bets.reduce((sum, bet) => sum + bet.amount, 0);
 
-    // Save user bets
-    const saveEntities = await this.userBetRepository.save(entities)
-    return {entities}
-
-    // await this.transactionService.createTransaction(current_user, placeBetDto.bets, TransactionCategoryEnum.BET)
-    // return { user_body };
+    if (totalBetAmount > userBalance) {
+      throw new InsufficientFundsException();
+    }
+    return false;
   }
 
   async validateBetsStatus(bets: BetDto[]): Promise<any> {
@@ -70,15 +98,12 @@ export class UserBetsService {
           bet.status === BetStatusEnum.CANCELLED ||
           bet.status === BetStatusEnum.SETTLED
         ) {
-          throw new HttpException(
-            'One or more bets are not eligible for placement due to their status',
-            HttpStatus.FORBIDDEN,
-          );
+          throw new BetNotElegibleException()
         }
       }
       return true;
     } catch (error) {
-      throw new InternalServerErrorException();
+      throw error
     }
   }
 
@@ -99,15 +124,24 @@ export class UserBetsService {
     return true;
   }
 
+  async addOddToBet(bets: BetDto[]): Promise<BetDto[]> {
+    for (const betDto of bets) {
+      const bet = await this.betRepository.findOneBy({ id: betDto.bet_id });
+      if (bet) {
+        betDto.odd = bet.odd;
+      }
+    }
+
+    return bets;
+  }
+
   async createTransaction(user: User, bets: BetDto[]): Promise<void> {
     for (const betDto of bets) {
       const transaction = new Transaction();
       transaction.amount = betDto.amount;
       transaction.category = TransactionCategoryEnum.BET;
       transaction.user = user;
-      // Set any other necessary properties for the transaction
 
-      // Guardar la transacción en la base de datos
       await this.transactionRepository.save(transaction);
     }
   }
@@ -118,10 +152,6 @@ export class UserBetsService {
     entity.amount = dto.amount;
     entity.bet_id = dto.bet_id;
     entity.user_id = dto.user_id;
-    // const bet = await this.betRepository.findOneBy({id: dto.bet_id});
-    // if (!bet) {
-    //   throw new HttpException('Bet not found');
-    // }
 
     return entity;
   }

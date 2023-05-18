@@ -3,12 +3,13 @@ import { Roles } from "./rol.entity";
 import { Transaction } from "src/modules/transactions/entities/transaction.entity";
 import { Bet } from "src/modules/bets/entities/bet.entity";
 import { UserBet } from "src/modules/user_bets/entities/user_bet.entity";
-import { Country } from "src/modules/countries/entities/country.entity";
+import { Country } from "src/common/entities/country.entity";
 import { UserStatusEnum } from "src/enums/user-status.enum";
+import { ApiProperty } from "@nestjs/swagger";
 
-@Entity({name: 'users'})
+@Entity({ name: 'users' })
 export class User {
-    @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn()
     id: number
     
     @Column()
@@ -53,6 +54,12 @@ export class User {
         default: UserStatusEnum.ACTIVE
       })
     user_state: string
+
+    @Column()
+    role_id: number
+
+    @Column()
+    country_id: number
     
     @CreateDateColumn()
     created_at: Date
@@ -68,11 +75,12 @@ export class User {
     
     @ManyToOne(() => Roles, { eager: true})
     @JoinColumn({ name: 'role_id'})
-    role_id: Roles;
+    rol: Roles;
+  
 
     @ManyToOne(() => Country, { eager: true })
     @JoinColumn({ name: 'country_id' })
-    country_id: Country;
+    country: Country;
   
     @OneToMany(() => Transaction, transaction => transaction.user)
     transactions: Transaction[];

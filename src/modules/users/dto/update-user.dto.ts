@@ -1,51 +1,103 @@
-import { IsOptional, IsNotEmpty, IsEmail, IsString } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import {
+  IsOptional,
+  IsString,
+  IsEmail,
+  MinLength,
+  MaxLength,
+  IsNumber,
+} from 'class-validator';
 
-export class UpdateUserDto {
+export class UserUpdateDTO {
+  @ApiProperty({
+    type: String,
+    description: 'First name',
+    example: 'John',
+  })
   @IsOptional()
-  @IsNotEmpty()
   @IsString()
   first_name?: string;
 
+  @ApiProperty({
+    type: String,
+    description: 'Last name',
+    example: 'Doe',
+  })
   @IsOptional()
-  @IsNotEmpty()
   @IsString()
   last_name?: string;
 
+  @ApiProperty({
+    type: String,
+    description: 'Phone number',
+    example: '1234567890',
+  })
   @IsOptional()
-  @IsNotEmpty()
   @IsString()
   phone?: string;
 
+  @ApiProperty({
+    type: String,
+    description: 'Email address',
+    example: 'example@example.com',
+  })
   @IsOptional()
-  @IsNotEmpty()
   @IsEmail()
   email?: string;
 
+  @ApiProperty({
+    type: String,
+    description: 'Username',
+    example: 'johndoe',
+  })
   @IsOptional()
-  @IsNotEmpty()
+  @IsString()
+  user_name?: string;
+
+  @ApiProperty({
+    type: String,
+    description: 'Password',
+    example: 'password123',
+  })
+  @IsOptional()
+  @IsString()
+  @MinLength(6)
+  @MaxLength(20)
+  password?: string;
+
+  @ApiProperty({
+    type: String,
+    description: 'Address',
+    example: '123 Main St',
+  })
+  @IsOptional()
   @IsString()
   address?: string;
 
+  @ApiProperty({
+    type: String,
+    description: 'Gender',
+    example: 'Male',
+  })
   @IsOptional()
-  @IsNotEmpty()
   @IsString()
   gender?: string;
 
+  @ApiProperty({
+    type: String,
+    description: 'City',
+    example: 'New York',
+  })
   @IsOptional()
-  @IsNotEmpty()
-  birth_date?: Date;
-
-  @IsOptional()
-  @IsNotEmpty()
-  category?: number;
-
-  @IsOptional()
-  @IsNotEmpty()
-  @IsString()
-  document_id?: string;
-
-  @IsOptional()
-  @IsNotEmpty()
   @IsString()
   city?: string;
+
+  @ApiProperty({
+    type: Number,
+    description: 'Country ID',
+    example: 1,
+  })
+  @IsOptional()
+  @IsNumber()
+  country_id?: number;
 }

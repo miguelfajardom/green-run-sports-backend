@@ -5,7 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserBet } from './entities/user_bet.entity';
 import { User } from '../users/entities/user.entity';
 import { Bet } from '../bets/entities/bet.entity';
-import { Event } from '../events/entities/event.entity';
+import { Event } from '../../common/entities/event.entity';
 import { UsersService } from '../users/users.service';
 import { Transaction } from '../transactions/entities/transaction.entity';
 import { TransactionsService } from '../transactions/transactions.service';

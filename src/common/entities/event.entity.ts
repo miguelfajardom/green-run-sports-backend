@@ -1,6 +1,6 @@
 import { EventStatusEnum } from 'src/enums/event-status';
 import { Bet } from 'src/modules/bets/entities/bet.entity';
-import { Sport } from 'src/modules/sports/entities/sport.entity';
+import { Sport } from 'src/common/entities/sport.entity';
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 
 
@@ -18,6 +18,9 @@ export class Event {
   @Column()
   description: string;
 
+  @Column()
+  sport_id: number
+
   @Column({
     type: 'enum',
     enum: EventStatusEnum,
@@ -32,3 +35,4 @@ export class Event {
   @OneToMany(() => Bet, bet => bet.event)
   bets: Bet[];
 }
+

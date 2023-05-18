@@ -1,17 +1,28 @@
 import {
-  BadRequestException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
+  HttpStatus,
+  BadRequestException,
+  HttpException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like } from 'typeorm';
+import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
-import { CreateDepositDto } from './dto/create-deposit.dto';
 import { Transaction } from '../transactions/entities/transaction.entity';
+import { UserTokenInterface } from 'src/common/interfaces/user-token.interface';
+import { calculateUserBalance, validateUserStatus } from 'src/utils/user.utils';
+import {
+  AdminUpdateException,
+  InsufficientFundsException,
+} from 'src/utils/exceptions.utils';
+import { CreateTransactionDto } from '../transactions/dto/create-transaction.dto';
 import { TransactionCategoryEnum } from 'src/enums/transaction-category.enum';
-import { CreateWithdrawalDto } from './dto/create-withdraw.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { BetStatusEnum } from 'src/enums/bet-status.enum';
+import { MessageResponse } from 'src/utils/message-response.enum';
+import { BlockorActivateUserDto } from './dto/block-activate-user.dto';
+import { UserStatusEnum } from 'src/enums/user-status.enum';
+import { UserUpdateDTO } from './dto/update-user.dto';
+import { convertDtoToObjectPlain } from 'src/utils/common-functions.util';
 
 @Injectable()
 export class UsersService {
@@ -21,54 +32,195 @@ export class UsersService {
     private transactionRepository: Repository<Transaction>,
   ) {}
 
-  async findAll() {
-    return this.userRepository.find();
+  async deposit(
+    user: UserTokenInterface,
+    depositDto: CreateTransactionDto,
+  ): Promise<any> {
+    await validateUserStatus(user.id, this.userRepository);
+
+    depositDto.user_id = user.id;
+
+    const deposit = await this.transactionRepository.save(depositDto);
+    const new_balance = await calculateUserBalance(user.id, this.userRepository)
+
+    return {
+      status: HttpStatus.OK,
+      message: MessageResponse.DEPOSIT_SUCCESSFULLY,
+      new_balance: new_balance
+    };
   }
 
-  async findOneByEmail(email: string): Promise<User | undefined> {
-    return this.userRepository.findOne({ where: { email } });
-  }
+  async withdraw(
+    user: UserTokenInterface,
+    withdrawData: CreateTransactionDto,
+  ): Promise<any> {
+    try {
+      const findUser = await validateUserStatus(user.id, this.userRepository);
 
-  async findOneById(id: number): Promise<User | undefined> {
-    return this.userRepository.findOne({ where: { id } });
-  }
+      const userBalance = await calculateUserBalance(
+        user.id,
+        this.userRepository,
+      );
 
-  async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
-    const user = await this.userRepository.findOne({ where: { id } });
-    if (!user) {
-      throw new NotFoundException(`User with ID ${id} not found`);
+      withdrawData.user_id = user.id;
+      withdrawData.category = TransactionCategoryEnum.WITHDRAW;
+
+      if (withdrawData.amount > userBalance)
+        throw new InsufficientFundsException();
+
+      const withdraw = await this.transactionRepository.save(withdrawData);
+      const new_balance = await calculateUserBalance(user.id, this.userRepository)
+
+      return {
+        status: HttpStatus.OK,
+        message: MessageResponse.WITHDRAWAL_SUCCESSFULLY,
+        new_balance
+      };
+    } catch (error) {
+      return { status: error.status, message: error.message };
     }
-
-    const { first_name, last_name, phone, email, address, city } =
-      updateUserDto;
-
-    user.first_name = first_name || user.first_name;
-    user.last_name = last_name || user.last_name;
-    user.phone = phone || user.phone;
-    user.email = email || user.email;
-    user.address = address || user.address;
-    user.city = city || user.city;
-
-    return this.userRepository.save(user);
   }
 
-  async calculateUserBalance(id: number): Promise<any> {
-    let balance = 0;
-    const user = await this.userRepository
-      .createQueryBuilder('user')
-      .leftJoinAndSelect('user.transactions', 'transaction')
-      .where('user.id = :id', { id })
-      .getOne();
-    
-      if(user && user.transactions.length !== 0){
-        for (const transaction of user.transactions) {
-          if (transaction.category === 'deposit' || transaction.category === 'winning') {
-            balance += transaction.amount;
-          } else if (transaction.category === 'withdraw' || transaction.category === 'bet') {
-            balance -= transaction.amount;
-          }
+  async update(
+    user: UserTokenInterface,
+    updateUserDto: UserUpdateDTO,
+    id?: number,
+  ): Promise<any> {
+    try {
+      const findUser = await validateUserStatus(user.id, this.userRepository);
+
+      if (id) {
+        const userToUpdate = await this.userRepository.findOneBy({ id });
+
+        if (userToUpdate && userToUpdate.rol.id === 1) {
+          throw new AdminUpdateException();
         }
       }
-    return balance;
+
+      const objectPlain: User = await convertDtoToObjectPlain(updateUserDto);
+
+      objectPlain.id = id ? id : user.id;
+
+      await this.userRepository.save(objectPlain);
+
+      return {
+        status: HttpStatus.OK,
+        message: MessageResponse.RECORDS_UPDATED_SUCCESS,
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async calculateUserBalance(user: number): Promise<any> {
+    try {
+      const findUser = await validateUserStatus(user, this.userRepository);
+      const balance = await calculateUserBalance(user, this.userRepository);
+      return { user_name: findUser.user_name, balance };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getTransactions(
+    user: UserTokenInterface,
+    category?: TransactionCategoryEnum,
+    user_id?: number,
+  ) {
+    try {
+      const queryBuilder =
+        this.transactionRepository.createQueryBuilder('transaction');
+
+      if (user) {
+        await validateUserStatus(user.id, this.userRepository);
+        queryBuilder.andWhere('transaction.user_id = :user_id', {
+          user_id: user.id,
+        });
+      }
+
+      if (user_id) {
+        await validateUserStatus(user_id, this.userRepository);
+        queryBuilder.andWhere('transaction.user_id = :user_id', { user_id });
+      }
+
+      if (category) {
+        queryBuilder.andWhere('transaction.category = :category', { category });
+      }
+
+      const transactions = await queryBuilder.getMany();
+
+      if (transactions.length !== 0)
+        return { count: transactions.length, items: transactions };
+
+      return {
+        status: HttpStatus.NOT_FOUND,
+        message: MessageResponse.NO_RECORDS_FOUND,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error);
+    }
+  }
+
+  async blockUser(
+    user: UserTokenInterface,
+    blockUserDto: BlockorActivateUserDto,
+  ): Promise<any> {
+    try {
+      const userToBlock = await this.userRepository.findOne({
+        where: { id: blockUserDto.user_id },
+      });
+
+      if (user.role === 'admin') {
+        throw new BadRequestException('Cannot block another admin');
+      }
+
+      if (userToBlock.user_state == UserStatusEnum.BLOCKED) {
+        return {
+          status_code: HttpStatus.BAD_REQUEST,
+          message: 'The user has already been blocked',
+        };
+      }
+
+      userToBlock.user_state = UserStatusEnum.BLOCKED;
+      await this.userRepository.save(userToBlock);
+
+      return {
+        status_code: HttpStatus.OK,
+        status_message: 'User blocked successfully',
+      };
+    } catch (error) {
+      throw new HttpException(
+        { message: 'Internal server error', error },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async activateUser(activateUserDto: BlockorActivateUserDto): Promise<any> {
+    try {
+      const userToActivate = await this.userRepository.findOne({
+        where: { id: activateUserDto.user_id },
+      });
+
+      if (userToActivate.user_state == UserStatusEnum.ACTIVE) {
+        return {
+          status_code: HttpStatus.BAD_REQUEST,
+          message: 'The user has already been activated',
+        };
+      }
+
+      userToActivate.user_state = UserStatusEnum.ACTIVE;
+      await this.userRepository.save(userToActivate);
+
+      return {
+        status_code: HttpStatus.OK,
+        status_message: 'User activated successfully',
+      };
+    } catch (error) {
+      throw new HttpException(
+        { message: 'Internal server error', error },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 }

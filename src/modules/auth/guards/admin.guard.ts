@@ -12,7 +12,7 @@ export class AdminGuard implements CanActivate {
   ): boolean | Promise<boolean> | Observable<boolean> {
     const requiredRole = 'admin';
     const user = context.switchToHttp().getRequest().user;
-    const userRole = user.role.name;
+    const userRole = user.role;
 
     if (userRole !== requiredRole) {
       throw new HttpException('You are not authorized to access this resource. Only administrators are allowed', HttpStatus.UNAUTHORIZED);

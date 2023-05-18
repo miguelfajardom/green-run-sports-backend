@@ -1,62 +1,164 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, Put, Request } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  UseGuards,
+  Query,
+  Put,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RegisterAuthDto } from '../auth/dto/register-auth.dto';
-import { CreateUserDto } from './dto/create-user.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { User } from './entities/user.entity';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
+import { UserTokenInterface } from 'src/common/interfaces/user-token.interface';
+import { UserGuard } from '../auth/guards/user.guard';
+import { AdminGuard } from '../auth/guards/admin.guard';
+import { User } from 'src/common/decorators/user.decorator';
+import { CreateTransactionDto } from '../transactions/dto/create-transaction.dto';
+import { TransactionCategoryEnum } from 'src/enums/transaction-category.enum';
+import { BlockorActivateUserDto } from './dto/block-activate-user.dto';
+import { UserUpdateDTO } from './dto/update-user.dto';
 
 @ApiBearerAuth()
-@ApiTags('Users')
-@UseGuards(JwtAuthGuard)
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Get()
-  async findAll(): Promise<User[]> {
-    return this.usersService.findAll();
+  @Get('balance/')
+  @UseGuards(UserGuard)
+  @ApiTags('Users')
+  @ApiOperation({ summary: 'Retrieve balance' })
+  getUserBalance(@User() user: UserTokenInterface) {
+    return this.usersService.calculateUserBalance(user.id);
   }
 
   @Get('balance/:id')
-  calculateUserBalance(@Param('id') id: number){
-    return this.usersService.calculateUserBalance(id)
+  @UseGuards(AdminGuard)
+  @ApiTags('Administrators')
+  @ApiOperation({ summary: 'Retrieve the balance of a user based on their ID' })
+  @ApiParam({
+    name: 'id',
+    description: 'ID of the user to retrieve its balance',
+  })
+  getUserBalanceById(@Param('id') id: number) {
+    return this.usersService.calculateUserBalance(id);
   }
 
-  // @Post('deposit')
+  @Post('deposit')
+  @UseGuards(UserGuard)
+  @ApiTags('Users')
+  @ApiOperation({ summary: 'Make a deposit' })
+  deposit(
+    @Body() depositDto: CreateTransactionDto,
+    @User() user: UserTokenInterface,
+  ) {
+    return this.usersService.deposit(user, depositDto);
+  }
 
-  // @Post('deposit')
-  // async deposit(@Body() depositData: any): Promise<any> {
-  //   const transaction = await this.usersService.deposit(depositData);
-  //   return { message: 'Deposit successful', transaction };
-  // }
+  @Post('withdraw')
+  @UseGuards(UserGuard)
+  @ApiTags('Users')
+  @ApiOperation({ summary: 'Make a withdrawal' })
+  withdraw(
+    @Body() withdrawDto: CreateTransactionDto,
+    @User() user: UserTokenInterface,
+  ) {
+    return this.usersService.withdraw(user, withdrawDto);
+  }
 
-  // @Post('withdraw')
-  // async withdraw(@Body() withdrawData: any): Promise<any> {
-  //   const transaction = await this.usersService.withdraw(withdrawData);
-  //   return { message: 'Withdrawal successful', transaction };
-  // }
+  @Get('transactions')
+  @UseGuards(UserGuard)
+  @ApiTags('Users')
+  @ApiOperation({
+    summary: 'List all user transactions. It can be filtered too by category',
+  })
+  @ApiQuery({
+    name: 'category',
+    required: false,
+    description:
+      'Transaction category (optional). Possible values: deposit, withdraw, bet, winning.',
+  })
+  getTransactions(
+    @User() user: UserTokenInterface,
+    @Query('category') category: TransactionCategoryEnum,
+  ) {
+    return this.usersService.getTransactions(user, category);
+  }
 
-  // @Put(':id')
-  // async update(
-  //   @Param('id') id: number,
-  //   @Body() updateUserDto: UpdateUserDto,
-  // ): Promise<User> {
-  //   return await this.usersService.update(id, updateUserDto);
-  // }
+  @Get('all-transactions')
+  @UseGuards(AdminGuard)
+  @ApiTags('Administrators')
+  @ApiOperation({
+    summary: 'List all user transactions. It can be filtered too by category',
+  })
+  @ApiQuery({
+    name: 'category',
+    required: false,
+    description:
+      'Transaction category (optional). Possible values: deposit, withdraw, bet, winning.',
+  })
+  @ApiQuery({
+    name: 'user_id',
+    required: false,
+    description: 'Transaction user_id (optional).',
+  })
+  getAllTransactions(
+    @Query('category') category: TransactionCategoryEnum,
+    @Query('user_id') user_id: number,
+  ) {
+    return this.usersService.getTransactions(null, category, user_id);
+  }
 
-  // @Get(':id/balance')
-  // async getBalance(@Param('id') id: number): Promise<number> {
-  //   const balance = await this.usersService.getBalance(id);
-  //   return { balance };
-  // }
+  @Post('block-user')
+  @UseGuards(AdminGuard)
+  @ApiTags('Administrators')
+  @ApiOperation({ summary: 'Block an user' })
+  blockUser(
+    @Body() blockUserDto: BlockorActivateUserDto,
+    @User() user: UserTokenInterface,
+  ) {
+    return this.usersService.blockUser(user, blockUserDto);
+  }
 
-  // @Get(':id/transactions')
-  // async getTransactions(
-  //   @Param('id') id: number,
-  //   @Query('category') category: string,
-  // ): Promise<any> {
-  //   const transactions = await this.usersService.getTransactions(id, category);
-  //   return { transactions };
-  // }
+  @Post('activate-user')
+  @UseGuards(AdminGuard)
+  @ApiTags('Administrators')
+  @ApiOperation({ summary: 'Activate an user' })
+  activateUser(@Body() activateUserDto: BlockorActivateUserDto) {
+    return this.usersService.activateUser(activateUserDto);
+  }
+
+  @Put('update')
+  @UseGuards(UserGuard, AdminGuard)
+  @ApiTags('Users')
+  @ApiOperation({ summary: 'Update an user' })
+  update(
+    @User() user: UserTokenInterface,
+    @Body() userUpdateDTO: UserUpdateDTO,
+  ) {
+    return this.usersService.update(user, userUpdateDTO);
+  }
+
+  @Put('update/:id')
+  @UseGuards(AdminGuard)
+  @ApiTags('Administrators')
+  @ApiOperation({ summary: 'Update an user by ID' })
+  @ApiParam({
+    name: 'id',
+    required: true,
+    description: 'User id to update',
+  })
+  updateUser(
+    @User() user: UserTokenInterface,
+    @Body() userUpdateDTO: UserUpdateDTO,
+    @Param('id') user_id: number,
+  ) {
+    return this.usersService.update(user, userUpdateDTO, user_id);
+  }
 }

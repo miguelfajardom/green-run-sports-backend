@@ -34,14 +34,20 @@ export class UserBet {
   @DeleteDateColumn({ type: 'timestamp' })
   deletedAt: Date;
 
+  @Column()
+  bet_id: number;
+
+  @Column()
+  user_id: number;
+
   @OneToMany(() => Transaction, transaction => transaction.userBet)
   transactions: Transaction[];
 
   @ManyToOne(() => User, user => user.userBets, { eager: true })
   @JoinColumn({name: 'user_id'})
-  user_id: number;
+  users: number;
 
   @ManyToOne(() => Bet, bet => bet.userBets, { eager: true })
   @JoinColumn({name: 'bet_id'})
-  bet_id: number;
+  bets: number;
 }
