@@ -3,7 +3,6 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { BetsModule } from './modules/bets/bets.module';
-import { EventsModule } from './modules/events/events.module';
 import { TransactionsModule } from './modules/transactions/transactions.module';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -29,7 +28,6 @@ import { User } from './modules/users/entities/user.entity';
     UsersModule,
     BetsModule,
     TransactionsModule,
-    EventsModule,
     AuthModule,
     UserBetsModule
   ],

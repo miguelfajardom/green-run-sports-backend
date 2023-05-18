@@ -1,7 +1,7 @@
 import { BetOptionEnum } from 'src/enums/bet-option.enum';
 import { BetResultEnum } from 'src/enums/bet-result.enum';
 import { BetStatusEnum } from 'src/enums/bet-status.enum';
-import { Event } from 'src/modules/events/entities/event.entity';
+import { Event } from 'src/common/entities/event.entity';
 import { Sport } from 'src/common/entities/sport.entity';
 import { UserBet } from 'src/modules/user_bets/entities/user_bet.entity';
 import { User } from 'src/modules/users/entities/user.entity';

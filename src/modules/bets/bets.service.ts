@@ -9,7 +9,7 @@ import { UserTokenInterface } from 'src/common/interfaces/user-token.interface';
 import { validateUserStatus } from 'src/utils/user.utils';
 import { SettleBetDto } from './dto/settled-bet.dto';
 import { validateBetOptions } from 'src/utils/bet.utils';
-import { Event } from '../events/entities/event.entity';
+import { Event } from '../../common/entities/event.entity';
 import { AlreadySettledBetException, BetsSettledCannotBeActivatedException, EventnotFoundException, NoRecordsFoundException } from 'src/utils/exceptions.utils';
 import { convertDtoToObjectPlain } from 'src/utils/common-functions.util';
 import { BetResultEnum } from 'src/enums/bet-result.enum';
