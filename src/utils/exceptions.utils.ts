@@ -125,3 +125,14 @@ export class AdministratorsDoNotHaveBalance extends HttpException {
     );
   }
 }
+
+export class AdminSelfOperationNotAllowedException extends HttpException {
+  constructor() {
+    super(
+      'Admin self-activation or self-blocking is not allowed',
+      HttpStatus.NOT_FOUND,
+    );
+  }
+}
+
+

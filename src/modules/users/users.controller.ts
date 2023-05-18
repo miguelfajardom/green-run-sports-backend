@@ -151,8 +151,11 @@ export class UsersController {
   @UseGuards(AdminGuard)
   @ApiTags('Administrators')
   @ApiOperation({ summary: 'Activate an user' })
-  activateUser(@Body() activateUserDto: BlockorActivateUserDto) {
-    return this.usersService.activateUser(activateUserDto);
+  activateUser(
+    @Body() activateUserDto: BlockorActivateUserDto,
+    @User() user: UserTokenInterface
+    ) {
+    return this.usersService.activateUser(user, activateUserDto);
   }
 
   @Put('update')

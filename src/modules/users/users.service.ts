@@ -13,6 +13,7 @@ import { Transaction } from '../transactions/entities/transaction.entity';
 import { UserTokenInterface } from 'src/common/interfaces/user-token.interface';
 import { calculateUserBalance, validateUserStatus } from 'src/utils/user.utils';
 import {
+  AdminSelfOperationNotAllowedException,
   AdminUpdateException,
   AdministratorsDoNotHaveBalance,
   InsufficientFundsException,
@@ -226,15 +227,24 @@ export class UsersService {
     blockUserDto: BlockorActivateUserDto,
   ): Promise<any> {
     try {
+
+      if(user.id === blockUserDto.user_id){
+        throw new AdminSelfOperationNotAllowedException()
+      }
+      
+      const findUser = await validateUserStatus(user.id, this.userRepository)
+
       const userToBlock = await this.userRepository.findOne({
         where: { id: blockUserDto.user_id },
       });
 
-      if (user.role === 'admin') {
+      if(!userToBlock) throw new UserNotFoundException()
+
+      if (userToBlock && userToBlock.rol.id === 1) {
         throw new BadRequestException('Cannot block another admin');
       }
 
-      if (userToBlock.user_state == UserStatusEnum.BLOCKED) {
+      if (userToBlock.user_state === UserStatusEnum.BLOCKED) {
         return {
           status_code: HttpStatus.BAD_REQUEST,
           message: 'The user has already been blocked',
@@ -249,18 +259,22 @@ export class UsersService {
         status_message: 'User blocked successfully',
       };
     } catch (error) {
-      throw new HttpException(
-        { message: 'Internal server error', error },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      throw error
     }
   }
 
-  async activateUser(activateUserDto: BlockorActivateUserDto): Promise<any> {
+  async activateUser(user: UserTokenInterface, activateUserDto: BlockorActivateUserDto): Promise<any> {
     try {
+      if(user.id === activateUserDto.user_id){
+        throw new AdminSelfOperationNotAllowedException()
+      }
+
       const userToActivate = await this.userRepository.findOne({
         where: { id: activateUserDto.user_id },
       });
+
+
+      if(!userToActivate) throw new UserNotFoundException()
 
       if (userToActivate.user_state == UserStatusEnum.ACTIVE) {
         return {
@@ -270,6 +284,7 @@ export class UsersService {
       }
 
       userToActivate.user_state = UserStatusEnum.ACTIVE;
+
       await this.userRepository.save(userToActivate);
 
       return {
@@ -277,10 +292,7 @@ export class UsersService {
         status_message: 'User activated successfully',
       };
     } catch (error) {
-      throw new HttpException(
-        { message: 'Internal server error', error },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      throw error
     }
   }
 }
