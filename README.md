@@ -17,10 +17,10 @@
     <pre><code>npm run migrate</code></pre>
     <li>Start the server:</li>
     <pre><code>npm run start:dev</code></pre>
-    <li>The API will be accessible at <a href="http://ec2-18-221-215-222.us-east-2.compute.amazonaws.com:3000/api">http://ec2-18-221-215-222.us-east-2.compute.amazonaws.com:3000/</a>.</li>
+    <li>The API will be accessible at <a href="http://ec2-18-221-215-222.us-east-2.compute.amazonaws.com:3000/">http://ec2-18-221-215-222.us-east-2.compute.amazonaws.com:3000/</a>.</li>
   </ol>
   <h2>API Documentation</h2>
-  <p>You can find the Swagger documentation for the GreenRun - Sports backend API at <a href="http://ec2-18-221-215-222.us-east-2.compute.amazonaws.com:3000/api-docs">Swagger Docs</a>.</p>
+  <p>You can find the Swagger documentation for the GreenRun - Sports backend API at <a href="http://ec2-18-221-215-222.us-east-2.compute.amazonaws.com:3000/docs">Swagger Docs</a>.</p>
   <p>The documentation provides details about the available endpoints, request/response formats, and authentication requirements. You can use the Swagger UI to interact with the API and test the different functionalities.</p>
   <h2>Deployment</h2>
   <p>The GreenRun - Sports backend API can be deployed to any cloud service provider like AWS, GCP, or Azure. To deploy the application, follow these general steps:</p>

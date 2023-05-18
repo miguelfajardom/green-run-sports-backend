@@ -42,9 +42,10 @@ export class BetsService {
     BetsService.transactionStaticService = transactionsService;
   }
 
-  async listBets(event_id: number, sport_id: number): Promise<any> {
+  async listBets(sport_id: number, event_id: number): Promise<any> {
     try {
-      const queryBuilder = this.betRepository.createQueryBuilder('bet');
+      const queryBuilder = this.betRepository.createQueryBuilder('bet')
+      .leftJoinAndSelect('bet.event', 'event')
 
       if (sport_id) {
         queryBuilder.andWhere('bet.sport_id = :sport_id', { sport_id });
