@@ -8,6 +8,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './jwt.strategy';
 import { Roles } from '../users/entities/rol.entity';
 import * as dotenv from 'dotenv';
+import { RevokedToken } from 'src/common/entities/revoked_token.entity';
 dotenv.config();
 @Module({
   imports: [
@@ -15,7 +16,7 @@ dotenv.config();
     TypeOrmModule.forFeature([User, Roles]),
     JwtModule.register({
       secret: process.env.JWT_SECRET,
-      signOptions: {expiresIn: '60m'},
+      signOptions: {expiresIn: '20m'},
       global: true
     },)
   ],

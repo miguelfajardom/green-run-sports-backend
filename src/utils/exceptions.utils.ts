@@ -1,5 +1,50 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
 
+export class UserNotFoundException extends HttpException {
+  constructor() {
+    super(
+      'User not found',
+      HttpStatus.NOT_FOUND,
+    );
+  }
+}
+
+export class UserNotFoundOrBlockedException extends HttpException {
+  constructor() {
+    super(
+      'User not found or is blocked',
+      HttpStatus.NOT_FOUND,
+    );
+  }
+}
+
+export class InvalidPasswordException extends HttpException {
+  constructor() {
+    super(
+      'Invalid password',
+      HttpStatus.BAD_REQUEST,
+    );
+  }
+}
+
+export class BlockOrNotExistException extends HttpException {
+  constructor() {
+    super(
+      'The specified user is either blocked or no longer exists',
+      HttpStatus.NOT_FOUND,
+    );
+  }
+}
+
+export class InvalidRoleException extends HttpException {
+  constructor() {
+    super(
+      'The assigned role is invalid or does not exist',
+      HttpStatus.NOT_FOUND,
+    );
+  }
+}
+
 export class InsufficientFundsException extends HttpException {
   constructor() {
     super(
@@ -40,30 +85,54 @@ export class EventnotFoundException extends HttpException {
 }
 
 export class InvalidBetOptionException extends HttpException {
-  constructor(message) {
-    super(message, HttpStatus.BAD_REQUEST);
+  constructor() {
+    super(
+      'Exactly one bet option with (won) status is required for event.',
+      HttpStatus.BAD_REQUEST,
+    );
   }
 }
 
 export class BetNotElegibleException extends HttpException {
   constructor() {
-    super('One or more bets are not eligible for placement due to their status or can only be placed on active bets', HttpStatus.BAD_REQUEST);
+    super(
+      'One or more bets are not eligible for placement due to their status or can only be placed on active bets',
+      HttpStatus.BAD_REQUEST,
+    );
   }
 }
 
 export class AlreadySettledBetException extends HttpException {
   constructor() {
-    super("Already settled bets cannot be cancelled", HttpStatus.UNAUTHORIZED);
+    super('Already settled bets cannot be cancelled', HttpStatus.UNAUTHORIZED);
   }
 }
 
 export class BetsSettledCannotBeActivatedException extends HttpException {
   constructor() {
-    super('Bets that are already settled cannot be activated', HttpStatus.UNAUTHORIZED);
+    super(
+      'Bets that are already settled cannot be activated',
+      HttpStatus.UNAUTHORIZED,
+    );
   }
 }
 
+export class AdministratorsDoNotHaveBalance extends HttpException {
+  constructor() {
+    super(
+      'Only users have a balance',
+      HttpStatus.NOT_FOUND,
+    );
+  }
+}
 
-
+export class AdminSelfOperationNotAllowedException extends HttpException {
+  constructor() {
+    super(
+      'Admin self-activation or self-blocking is not allowed',
+      HttpStatus.NOT_FOUND,
+    );
+  }
+}
 
 

@@ -13,8 +13,12 @@ import { Transaction } from '../transactions/entities/transaction.entity';
 import { UserTokenInterface } from 'src/common/interfaces/user-token.interface';
 import { calculateUserBalance, validateUserStatus } from 'src/utils/user.utils';
 import {
+  AdminSelfOperationNotAllowedException,
   AdminUpdateException,
+  AdministratorsDoNotHaveBalance,
   InsufficientFundsException,
+  NoRecordsFoundException,
+  UserNotFoundException,
 } from 'src/utils/exceptions.utils';
 import { CreateTransactionDto } from '../transactions/dto/create-transaction.dto';
 import { TransactionCategoryEnum } from 'src/enums/transaction-category.enum';
@@ -23,14 +27,51 @@ import { BlockorActivateUserDto } from './dto/block-activate-user.dto';
 import { UserStatusEnum } from 'src/enums/user-status.enum';
 import { UserUpdateDTO } from './dto/update-user.dto';
 import { convertDtoToObjectPlain } from 'src/utils/common-functions.util';
+import { Event } from 'src/common/entities/event.entity';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
+    @InjectRepository(Event) private eventRepository: Repository<Event>,
     @InjectRepository(Transaction)
     private transactionRepository: Repository<Transaction>,
   ) {}
+
+  async getUser(user_id): Promise<User> {
+    const findUser = await this.userRepository.findOneBy({ id: user_id });
+
+    if (!findUser) throw new UserNotFoundException();
+
+    return findUser;
+  }
+
+  async getEvents(user_id: number, sport_id: number): Promise<any> {
+    try {
+      await validateUserStatus(user_id, this.userRepository);
+
+      const queryBuilder = await this.eventRepository.createQueryBuilder(
+        'event',
+      );
+
+      if (sport_id) {
+        queryBuilder.andWhere('event.sport_id = :sport_id', { sport_id });
+      }
+
+      const findedEvents = await queryBuilder.getMany();
+      if (findedEvents.length !== 0) {
+        return {
+          status: HttpStatus.OK,
+          count: findedEvents.length,
+          findedEvents,
+        };
+      }
+
+      throw new NoRecordsFoundException();
+    } catch (error) {
+      throw error;
+    }
+  }
 
   async deposit(
     user: UserTokenInterface,
@@ -41,12 +82,15 @@ export class UsersService {
     depositDto.user_id = user.id;
 
     const deposit = await this.transactionRepository.save(depositDto);
-    const new_balance = await calculateUserBalance(user.id, this.userRepository)
+    const new_balance = await calculateUserBalance(
+      user.id,
+      this.userRepository,
+    );
 
     return {
       status: HttpStatus.OK,
       message: MessageResponse.DEPOSIT_SUCCESSFULLY,
-      new_balance: new_balance
+      new_balance: new_balance,
     };
   }
 
@@ -69,12 +113,15 @@ export class UsersService {
         throw new InsufficientFundsException();
 
       const withdraw = await this.transactionRepository.save(withdrawData);
-      const new_balance = await calculateUserBalance(user.id, this.userRepository)
+      const new_balance = await calculateUserBalance(
+        user.id,
+        this.userRepository,
+      );
 
       return {
         status: HttpStatus.OK,
         message: MessageResponse.WITHDRAWAL_SUCCESSFULLY,
-        new_balance
+        new_balance,
       };
     } catch (error) {
       return { status: error.status, message: error.message };
@@ -112,10 +159,24 @@ export class UsersService {
     }
   }
 
-  async calculateUserBalance(user: number): Promise<any> {
+  async calculateUserBalance(
+    user: UserTokenInterface,
+    user_id?: number,
+  ): Promise<any> {
     try {
-      const findUser = await validateUserStatus(user, this.userRepository);
-      const balance = await calculateUserBalance(user, this.userRepository);
+      
+      if (user_id) {
+        const findUser = await validateUserStatus(user_id, this.userRepository);
+
+        if (findUser.role_id === 1) throw new AdministratorsDoNotHaveBalance();
+      }
+
+      const findUser = await validateUserStatus(!user_id ? user.id : user_id, this.userRepository);
+
+      const balance = await calculateUserBalance(
+        !user_id ? user.id : user_id,
+        this.userRepository);
+
       return { user_name: findUser.user_name, balance };
     } catch (error) {
       throw error;
@@ -166,15 +227,24 @@ export class UsersService {
     blockUserDto: BlockorActivateUserDto,
   ): Promise<any> {
     try {
+
+      if(user.id === blockUserDto.user_id){
+        throw new AdminSelfOperationNotAllowedException()
+      }
+      
+      const findUser = await validateUserStatus(user.id, this.userRepository)
+
       const userToBlock = await this.userRepository.findOne({
         where: { id: blockUserDto.user_id },
       });
 
-      if (user.role === 'admin') {
+      if(!userToBlock) throw new UserNotFoundException()
+
+      if (userToBlock && userToBlock.rol.id === 1) {
         throw new BadRequestException('Cannot block another admin');
       }
 
-      if (userToBlock.user_state == UserStatusEnum.BLOCKED) {
+      if (userToBlock.user_state === UserStatusEnum.BLOCKED) {
         return {
           status_code: HttpStatus.BAD_REQUEST,
           message: 'The user has already been blocked',
@@ -189,18 +259,22 @@ export class UsersService {
         status_message: 'User blocked successfully',
       };
     } catch (error) {
-      throw new HttpException(
-        { message: 'Internal server error', error },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      throw error
     }
   }
 
-  async activateUser(activateUserDto: BlockorActivateUserDto): Promise<any> {
+  async activateUser(user: UserTokenInterface, activateUserDto: BlockorActivateUserDto): Promise<any> {
     try {
+      if(user.id === activateUserDto.user_id){
+        throw new AdminSelfOperationNotAllowedException()
+      }
+
       const userToActivate = await this.userRepository.findOne({
         where: { id: activateUserDto.user_id },
       });
+
+
+      if(!userToActivate) throw new UserNotFoundException()
 
       if (userToActivate.user_state == UserStatusEnum.ACTIVE) {
         return {
@@ -210,6 +284,7 @@ export class UsersService {
       }
 
       userToActivate.user_state = UserStatusEnum.ACTIVE;
+
       await this.userRepository.save(userToActivate);
 
       return {
@@ -217,10 +292,7 @@ export class UsersService {
         status_message: 'User activated successfully',
       };
     } catch (error) {
-      throw new HttpException(
-        { message: 'Internal server error', error },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      throw error
     }
   }
 }

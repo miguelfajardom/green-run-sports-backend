@@ -11,6 +11,12 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
 import { ActiveUserMiddleware } from './common/middlewares/active-user/active-user.middleware';
 import { User } from './modules/users/entities/user.entity';
+import { CommonController } from './common/controllers/common/common.controller';
+import { Event } from './common/entities/event.entity';
+import { Country } from './common/entities/country.entity';
+import { CommonService } from './common/controllers/common/common.service';
+import { Sport } from './common/entities/sport.entity';
+import { RevokedToken } from './common/entities/revoked_token.entity';
 
 @Module({
   imports: [
@@ -24,16 +30,17 @@ import { User } from './modules/users/entities/user.entity';
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true,
     }),
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, Event, Country, Sport, RevokedToken]),
     UsersModule,
     BetsModule,
     TransactionsModule,
     AuthModule,
     UserBetsModule
   ],
-  controllers: [AppController],
+  controllers: [AppController, CommonController],
   providers: [
     AppService,
+    CommonService,
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,

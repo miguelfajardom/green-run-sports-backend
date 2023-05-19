@@ -2,6 +2,7 @@ import { UnauthorizedException } from "@nestjs/common";
 import { UserStatusEnum } from "src/enums/user-status.enum";
 import { User } from "src/modules/users/entities/user.entity";
 import { Repository } from "typeorm";
+import { UserNotFoundOrBlockedException } from "./exceptions.utils";
 
 export async function calculateUserBalance(id: number, userRepository: Repository<User>): Promise<number> {
     let balance = 0;
@@ -27,7 +28,7 @@ export async function validateUserStatus(id: number, userRepository: Repository<
   const findUser = await userRepository.findOneBy({id});
   
   if (!findUser || findUser.user_state !== UserStatusEnum.ACTIVE) {
-    throw new UnauthorizedException(`User ${findUser?.user_name} not found or is blocked`);
+    throw new UserNotFoundOrBlockedException()
   }
 
   return findUser

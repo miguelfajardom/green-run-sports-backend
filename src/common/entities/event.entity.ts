@@ -18,7 +18,7 @@ export class Event {
   @Column()
   description: string;
 
-  @Column()
+  @Column({name: 'sport_id'})
   sport_id: number
 
   @Column({

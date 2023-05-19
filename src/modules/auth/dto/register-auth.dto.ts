@@ -13,7 +13,7 @@ import { LoginAuthDto } from './login-auth.dto';
 export class RegisterAuthDto extends PartialType(LoginAuthDto) {
   @ApiProperty({
     type: Number,
-    description: 'ID of the user role',
+    description: 'ID of the user role. 1 = admin, 2 = user',
     example: 1,
   })
   @IsNotEmpty()

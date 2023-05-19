@@ -11,16 +11,16 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Public()
-  @ApiOperation({ summary: 'Register a new user' })
-  @Post('register')
-  registerUser(@Body() userObject: RegisterAuthDto){
-    return this.authService.register(userObject)
+  @Post('login')
+  @ApiOperation({ summary: 'Authenticate user and generate access token', description: 'There is two default users. (administrator, user) Default password: password123'})
+  loginUser(@Body() userObject: LoginAuthDto){
+    return this.authService.login(userObject)
   }
 
   @Public()
-  @Post('login')
-  @ApiOperation({ summary: 'Authenticate user and generate access token' })
-  loginUser(@Body() userObject: LoginAuthDto){
-    return this.authService.login(userObject)
+  @ApiOperation({ summary: 'Register a new user', description: 'There is two default roles. 1 = admin, 2 = user)' })
+  @Post('register')
+  registerUser(@Body() userObject: RegisterAuthDto){
+    return this.authService.register(userObject)
   }
 }

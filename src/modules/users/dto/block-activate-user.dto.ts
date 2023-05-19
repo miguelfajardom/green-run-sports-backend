@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty } from "class-validator";
+import { IsNotEmpty, IsNumber } from "class-validator";
 
 export class BlockorActivateUserDto {
     @ApiProperty({
@@ -8,5 +8,6 @@ export class BlockorActivateUserDto {
       example: 1
     })
     @IsNotEmpty()
+    @IsNumber()
     user_id: number;
   }
