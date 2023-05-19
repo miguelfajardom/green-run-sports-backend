@@ -14,7 +14,7 @@ async function bootstrap() {
       Users: (administrator, user)\n
       Roles: (1: admin, 2: user)\n
       Additionally, you will find pre-created events and bets for various sports.\n
-      You can search for them using the (/events, /sports) endpoints\n
+      You can search for them using the (/events, /bets) endpoints\n
       Furthermore, I have included two common endpoints for retrieving countries and sports`
     )
     .setVersion('1.0')
